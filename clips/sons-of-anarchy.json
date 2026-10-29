@@ -1,0 +1,156 @@
+{
+  "url": "https://www.youtube.com/watch?v=661f6PkKOL0",
+  "youtubeId": "661f6PkKOL0",
+  "title": "Sons of Anarchy",
+  "language": "en",
+  "durationSeconds": 141.02,
+  "sentencesPerGroup": 2,
+  "groups": [
+    {
+      "start": 0.21,
+      "end": 5.75,
+      "sentences": [
+        {
+          "start": 0.21,
+          "end": 1.55,
+          "text": "What happens now, Chris?",
+          "blankIndexes": [
+            1
+          ]
+        },
+        {
+          "start": 4.55,
+          "end": 5.75,
+          "text": "We settle with the Irish.",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 14.78,
+      "end": 23.05,
+      "sentences": [
+        {
+          "start": 14.78,
+          "end": 17.52,
+          "text": "How do we do that with the three dead bodies?",
+          "blankIndexes": [
+            7
+          ]
+        },
+        {
+          "start": 22.31,
+          "end": 23.05,
+          "text": "How would you do it?",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 31.31,
+      "end": 36.15,
+      "sentences": [
+        {
+          "start": 31.31,
+          "end": 33.03,
+          "text": "The smart plan would be that amount",
+          "blankIndexes": [
+            1
+          ]
+        },
+        {
+          "start": 33.93,
+          "end": 36.15,
+          "text": "of bad relationship, you know, two guys.",
+          "blankIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "start": 37.07,
+      "end": 39.68,
+      "sentences": [
+        {
+          "start": 37.07,
+          "end": 39.68,
+          "text": "With some history, get into a beef thing leads to another.",
+          "blankIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "start": 66.2,
+      "end": 68.84,
+      "sentences": [
+        {
+          "start": 66.2,
+          "end": 67.88,
+          "text": "I guess you had another vote.",
+          "blankIndexes": [
+            1
+          ]
+        },
+        {
+          "start": 68.12,
+          "end": 68.84,
+          "text": "I wasn't privy to.",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 72.72,
+      "end": 78.95,
+      "sentences": [
+        {
+          "start": 72.72,
+          "end": 73.42,
+          "text": "Yeah, we did.",
+          "blankIndexes": []
+        },
+        {
+          "start": 77.83,
+          "end": 78.95,
+          "text": "Time it was unanimous.",
+          "blankIndexes": [
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "start": 93.72,
+      "end": 94.12,
+      "sentences": [
+        {
+          "start": 93.72,
+          "end": 94.12,
+          "text": "Let's go.",
+          "blankIndexes": []
+        }
+      ]
+    },
+    {
+      "start": 140.6,
+      "end": 141.02,
+      "sentences": [
+        {
+          "start": 140.6,
+          "end": 141.02,
+          "text": "It's good.",
+          "blankIndexes": []
+        }
+      ]
+    }
+  ]
+}

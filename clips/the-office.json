@@ -1,0 +1,1028 @@
+{
+  "url": "https://www.youtube.com/watch?v=gO8N3L_aERg",
+  "youtubeId": "gO8N3L_aERg",
+  "title": "The Office",
+  "language": "en",
+  "durationSeconds": 275.46,
+  "sentencesPerGroup": 2,
+  "groups": [
+    {
+      "start": 26.96,
+      "end": 35.33,
+      "sentences": [
+        {
+          "start": 26.96,
+          "end": 29.18,
+          "text": "Last week I gave a fire safety talk.",
+          "blankIndexes": [
+            6
+          ]
+        },
+        {
+          "start": 29.76,
+          "end": 35.33,
+          "text": "My own fault for using PowerPoint.",
+          "blankIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "start": 40.48,
+      "end": 51.42,
+      "sentences": [
+        {
+          "start": 40.48,
+          "end": 43.0,
+          "text": "But experience is the best teacher.",
+          "blankIndexes": [
+            1
+          ]
+        },
+        {
+          "start": 48.84,
+          "end": 51.42,
+          "text": "Today, smoking is going to save lives.",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 70.99,
+      "end": 74.86,
+      "sentences": [
+        {
+          "start": 70.99,
+          "end": 72.39,
+          "text": "Didn't one smell anything smoky?",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 73.5,
+          "end": 74.86,
+          "text": "Did you bring your jerky in again?",
+          "blankIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "start": 85.97,
+      "end": 88.29,
+      "sentences": [
+        {
+          "start": 85.97,
+          "end": 86.91,
+          "text": "What's the procedure?",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 87.41,
+          "end": 88.29,
+          "text": "What do we do, people?",
+          "blankIndexes": [
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "start": 88.41,
+      "end": 90.61,
+      "sentences": [
+        {
+          "start": 88.41,
+          "end": 88.87,
+          "text": "The phones are dead.",
+          "blankIndexes": [
+            1
+          ]
+        },
+        {
+          "start": 89.11,
+          "end": 90.61,
+          "text": "Oh, how did that happen?",
+          "blankIndexes": [
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "start": 90.71,
+      "end": 92.47,
+      "sentences": [
+        {
+          "start": 90.71,
+          "end": 91.43,
+          "text": "It's out in the hall.",
+          "blankIndexes": []
+        },
+        {
+          "start": 91.65,
+          "end": 92.47,
+          "text": "No, we don't know that.",
+          "blankIndexes": []
+        }
+      ]
+    },
+    {
+      "start": 92.63,
+      "end": 94.67,
+      "sentences": [
+        {
+          "start": 92.63,
+          "end": 93.91,
+          "text": "The smoke could be coming through an air duct.",
+          "blankIndexes": [
+            1
+          ]
+        },
+        {
+          "start": 93.99,
+          "end": 94.67,
+          "text": "Oh my God!",
+          "blankIndexes": []
+        }
+      ]
+    },
+    {
+      "start": 94.95,
+      "end": 96.79,
+      "sentences": [
+        {
+          "start": 94.95,
+          "end": 95.63,
+          "text": "Okay, it's happening.",
+          "blankIndexes": [
+            2
+          ]
+        },
+        {
+          "start": 96.11,
+          "end": 96.79,
+          "text": "Everybody stay calm.",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 97.03,
+      "end": 98.79,
+      "sentences": [
+        {
+          "start": 97.03,
+          "end": 97.61,
+          "text": "What's the procedure?",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 97.97,
+          "end": 98.79,
+          "text": "What's the procedure?",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 98.91,
+      "end": 100.7,
+      "sentences": [
+        {
+          "start": 98.91,
+          "end": 99.65,
+          "text": "Stay f*** up!",
+          "blankIndexes": []
+        },
+        {
+          "start": 99.78,
+          "end": 100.7,
+          "text": "Wait, whoa, blah, wow.",
+          "blankIndexes": []
+        }
+      ]
+    },
+    {
+      "start": 100.82,
+      "end": 102.26,
+      "sentences": [
+        {
+          "start": 100.82,
+          "end": 101.86,
+          "text": "Wait, your .",
+          "blankIndexes": []
+        },
+        {
+          "start": 101.86,
+          "end": 102.26,
+          "text": "Come down!",
+          "blankIndexes": []
+        }
+      ]
+    },
+    {
+      "start": 102.93,
+      "end": 104.63,
+      "sentences": [
+        {
+          "start": 102.93,
+          "end": 103.63,
+          "text": "Go, Michael, no!",
+          "blankIndexes": [
+            1
+          ]
+        },
+        {
+          "start": 103.99,
+          "end": 104.63,
+          "text": "Touch the handle.",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 104.97,
+      "end": 109.62,
+      "sentences": [
+        {
+          "start": 104.97,
+          "end": 106.69,
+          "text": "If it's hot, there could be a fire in the hallway.",
+          "blankIndexes": [
+            3
+          ]
+        },
+        {
+          "start": 108.98,
+          "end": 109.62,
+          "text": "What is warm me?",
+          "blankIndexes": []
+        }
+      ]
+    },
+    {
+      "start": 109.74,
+      "end": 112.04,
+      "sentences": [
+        {
+          "start": 109.74,
+          "end": 110.1,
+          "text": "Oh, my gosh.",
+          "blankIndexes": []
+        },
+        {
+          "start": 110.98,
+          "end": 112.04,
+          "text": "Not a viable option.",
+          "blankIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "start": 112.28,
+      "end": 113.9,
+      "sentences": [
+        {
+          "start": 112.28,
+          "end": 112.92,
+          "text": "What next?",
+          "blankIndexes": []
+        },
+        {
+          "start": 113.22,
+          "end": 113.9,
+          "text": "Come to the other door.",
+          "blankIndexes": [
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "start": 114.06,
+      "end": 116.2,
+      "sentences": [
+        {
+          "start": 114.06,
+          "end": 115.18,
+          "text": "Oh, here's a door.",
+          "blankIndexes": [
+            1
+          ]
+        },
+        {
+          "start": 115.46,
+          "end": 116.2,
+          "text": "Check that one out.",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 116.36,
+      "end": 117.98,
+      "sentences": [
+        {
+          "start": 116.36,
+          "end": 117.04,
+          "text": "How's the handle?",
+          "blankIndexes": [
+            2
+          ]
+        },
+        {
+          "start": 117.4,
+          "end": 117.98,
+          "text": "It's warm.",
+          "blankIndexes": []
+        }
+      ]
+    },
+    {
+      "start": 118.1,
+      "end": 119.98,
+      "sentences": [
+        {
+          "start": 118.1,
+          "end": 118.6,
+          "text": "Okay, go to the back door.",
+          "blankIndexes": []
+        },
+        {
+          "start": 118.6,
+          "end": 119.98,
+          "text": "Well, another option.",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 120.7,
+      "end": 123.94,
+      "sentences": [
+        {
+          "start": 120.7,
+          "end": 122.82,
+          "text": "Geez, okay, settle on everyone.",
+          "blankIndexes": [
+            2
+          ]
+        },
+        {
+          "start": 123.04,
+          "end": 123.94,
+          "text": "No, I forget my work.",
+          "blankIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "start": 124.06,
+      "end": 125.64,
+      "sentences": [
+        {
+          "start": 124.06,
+          "end": 124.9,
+          "text": "Leave it, woman.",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 125.24,
+          "end": 125.64,
+          "text": "Get out of way.",
+          "blankIndexes": []
+        }
+      ]
+    },
+    {
+      "start": 125.74,
+      "end": 127.72,
+      "sentences": [
+        {
+          "start": 125.74,
+          "end": 126.22,
+          "text": "Go, go, go.",
+          "blankIndexes": []
+        },
+        {
+          "start": 126.32,
+          "end": 127.72,
+          "text": "No, things can be replaced, Phyllis.",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 127.98,
+      "end": 136.76,
+      "sentences": [
+        {
+          "start": 127.98,
+          "end": 130.44,
+          "text": "People, human lives, however, can...",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 135.0,
+          "end": 136.76,
+          "text": "This one's hot too!",
+          "blankIndexes": []
+        }
+      ]
+    },
+    {
+      "start": 137.04,
+      "end": 139.2,
+      "sentences": [
+        {
+          "start": 137.04,
+          "end": 138.78,
+          "text": "Okay, we're trapped everyone for himself!",
+          "blankIndexes": [
+            2
+          ]
+        },
+        {
+          "start": 139.06,
+          "end": 139.2,
+          "text": "Okay.",
+          "blankIndexes": []
+        }
+      ]
+    },
+    {
+      "start": 139.54,
+      "end": 140.54,
+      "sentences": [
+        {
+          "start": 139.54,
+          "end": 139.72,
+          "text": "Let's go!",
+          "blankIndexes": []
+        },
+        {
+          "start": 140.24,
+          "end": 140.54,
+          "text": "Let's go!",
+          "blankIndexes": []
+        }
+      ]
+    },
+    {
+      "start": 143.39,
+      "end": 147.28,
+      "sentences": [
+        {
+          "start": 143.39,
+          "end": 146.38,
+          "text": "Have you ever seen a burn victim?",
+          "blankIndexes": [
+            6
+          ]
+        },
+        {
+          "start": 146.82,
+          "end": 147.28,
+          "text": "Okay!",
+          "blankIndexes": []
+        }
+      ]
+    },
+    {
+      "start": 148.52,
+      "end": 151.56,
+      "sentences": [
+        {
+          "start": 148.52,
+          "end": 149.5,
+          "text": "Procedure, procedure.",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 150.6,
+          "end": 151.56,
+          "text": "Exit options.",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 151.96,
+      "end": 154.68,
+      "sentences": [
+        {
+          "start": 151.96,
+          "end": 153.0,
+          "text": "Where do we go, folks?",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 153.38,
+          "end": 154.68,
+          "text": "Use a what to cover the mouth?",
+          "blankIndexes": [
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "start": 154.86,
+      "end": 156.32,
+      "sentences": [
+        {
+          "start": 154.86,
+          "end": 155.08,
+          "text": "A what?",
+          "blankIndexes": []
+        },
+        {
+          "start": 155.48,
+          "end": 156.32,
+          "text": "A rag?",
+          "blankIndexes": []
+        }
+      ]
+    },
+    {
+      "start": 156.7,
+      "end": 160.26,
+      "sentences": [
+        {
+          "start": 156.7,
+          "end": 157.84,
+          "text": "A damp rag, perhaps.",
+          "blankIndexes": [
+            3
+          ]
+        },
+        {
+          "start": 158.86,
+          "end": 160.26,
+          "text": "Let's remember those procedures.",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 160.62,
+      "end": 161.8,
+      "sentences": [
+        {
+          "start": 160.62,
+          "end": 161.24,
+          "text": "What are the options?",
+          "blankIndexes": [
+            3
+          ]
+        },
+        {
+          "start": 161.62,
+          "end": 161.8,
+          "text": "Okay.",
+          "blankIndexes": []
+        }
+      ]
+    },
+    {
+      "start": 162.3,
+      "end": 164.26,
+      "sentences": [
+        {
+          "start": 162.3,
+          "end": 163.16,
+          "text": "That's the wrong way.",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 163.32,
+          "end": 164.26,
+          "text": "We've already tried that.",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 164.5,
+      "end": 167.48,
+      "sentences": [
+        {
+          "start": 164.5,
+          "end": 165.6,
+          "text": "Remember your exit?",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 165.62,
+          "end": 167.48,
+          "text": "Exit points, exit points, people.",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 167.78,
+      "end": 169.56,
+      "sentences": [
+        {
+          "start": 167.78,
+          "end": 168.06,
+          "text": "What's next?",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 169.08,
+          "end": 169.56,
+          "text": "Stay alive!",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 169.78,
+      "end": 171.89,
+      "sentences": [
+        {
+          "start": 169.78,
+          "end": 170.32,
+          "text": "I'm getting help!",
+          "blankIndexes": [
+            1
+          ]
+        },
+        {
+          "start": 171.27,
+          "end": 171.89,
+          "text": "You're too heavy!",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 172.03,
+      "end": 180.48,
+      "sentences": [
+        {
+          "start": 172.03,
+          "end": 173.41,
+          "text": "I don't weigh 82 pounds!",
+          "blankIndexes": [
+            2
+          ]
+        },
+        {
+          "start": 180.02,
+          "end": 180.48,
+          "text": "Anyone?",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 181.04,
+      "end": 181.62,
+      "sentences": [
+        {
+          "start": 181.04,
+          "end": 181.62,
+          "text": "9-1-1.",
+          "blankIndexes": []
+        }
+      ]
+    },
+    {
+      "start": 193.38,
+      "end": 198.22,
+      "sentences": [
+        {
+          "start": 193.38,
+          "end": 197.02,
+          "text": "Use the surge of fear and adrenaline to sharpen your decision-making.",
+          "blankIndexes": [
+            2
+          ]
+        },
+        {
+          "start": 197.22,
+          "end": 198.22,
+          "text": "Okay, I am not dying here.",
+          "blankIndexes": [
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "start": 211.45,
+      "end": 212.95,
+      "sentences": [
+        {
+          "start": 211.45,
+          "end": 212.95,
+          "text": "It's been a",
+          "blankIndexes": []
+        }
+      ]
+    },
+    {
+      "start": 237.59,
+      "end": 242.43,
+      "sentences": [
+        {
+          "start": 237.59,
+          "end": 239.83,
+          "text": "test of our emergency preparedness.",
+          "blankIndexes": [
+            3
+          ]
+        },
+        {
+          "start": 240.37,
+          "end": 242.43,
+          "text": "There is no fire, it was only a simulation.",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 242.93,
+      "end": 245.15,
+      "sentences": [
+        {
+          "start": 242.93,
+          "end": 243.37,
+          "text": "What?",
+          "blankIndexes": []
+        },
+        {
+          "start": 243.67,
+          "end": 245.15,
+          "text": "Fire, not real.",
+          "blankIndexes": []
+        }
+      ]
+    },
+    {
+      "start": 245.33,
+      "end": 249.95,
+      "sentences": [
+        {
+          "start": 245.33,
+          "end": 247.25,
+          "text": "This was merely a training exercise.",
+          "blankIndexes": [
+            2
+          ]
+        },
+        {
+          "start": 248.63,
+          "end": 249.95,
+          "text": "So, what have we learned?",
+          "blankIndexes": [
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "start": 251.16,
+      "end": 253.7,
+      "sentences": [
+        {
+          "start": 251.16,
+          "end": 252.18,
+          "text": "Oh, come on.",
+          "blankIndexes": []
+        },
+        {
+          "start": 252.2,
+          "end": 253.7,
+          "text": "It's not real, Stanley.",
+          "blankIndexes": [
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "start": 253.9,
+      "end": 255.58,
+      "sentences": [
+        {
+          "start": 253.9,
+          "end": 254.52,
+          "text": "Don't have a heart in time.",
+          "blankIndexes": [
+            3
+          ]
+        },
+        {
+          "start": 254.62,
+          "end": 255.58,
+          "text": "No, no, no, no.",
+          "blankIndexes": []
+        }
+      ]
+    },
+    {
+      "start": 255.66,
+      "end": 258.44,
+      "sentences": [
+        {
+          "start": 255.66,
+          "end": 256.24,
+          "text": "You will not die.",
+          "blankIndexes": []
+        },
+        {
+          "start": 256.76,
+          "end": 258.44,
+          "text": "Stanley, Stanley, you will not die.",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 259.04,
+      "end": 261.36,
+      "sentences": [
+        {
+          "start": 259.04,
+          "end": 259.3,
+          "text": "Stanley!",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 260.56,
+          "end": 261.36,
+          "text": "Paraki's president!",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 262.18,
+      "end": 264.6,
+      "sentences": [
+        {
+          "start": 262.18,
+          "end": 263.44,
+          "text": "You are black, Stanley!",
+          "blankIndexes": [
+            2
+          ]
+        },
+        {
+          "start": 263.8,
+          "end": 264.6,
+          "text": "I'm gonna give him mouth to mouth.",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 264.66,
+      "end": 267.4,
+      "sentences": [
+        {
+          "start": 264.66,
+          "end": 266.1,
+          "text": "No, no, no, no, don't give him mouth to mouth for this.",
+          "blankIndexes": [
+            7
+          ]
+        },
+        {
+          "start": 266.48,
+          "end": 267.4,
+          "text": "You're gonna swallow his tongue.",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 267.92,
+      "end": 268.76,
+      "sentences": [
+        {
+          "start": 267.92,
+          "end": 268.42,
+          "text": "Open your mouth.",
+          "blankIndexes": [
+            2
+          ]
+        },
+        {
+          "start": 268.7,
+          "end": 268.76,
+          "text": "Michael.",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 269.0,
+      "end": 272.72,
+      "sentences": [
+        {
+          "start": 269.0,
+          "end": 270.04,
+          "text": "Swat, don't swallow it.",
+          "blankIndexes": [
+            2
+          ]
+        },
+        {
+          "start": 271.36,
+          "end": 272.72,
+          "text": "I'm fine, leave me away.",
+          "blankIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "start": 274.36,
+      "end": 275.46,
+      "sentences": [
+        {
+          "start": 274.36,
+          "end": 275.46,
+          "text": "I'm saving it.",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    }
+  ]
+}

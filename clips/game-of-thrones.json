@@ -1,0 +1,585 @@
+{
+  "url": "https://www.youtube.com/watch?v=oUjaljMMy2M",
+  "youtubeId": "oUjaljMMy2M",
+  "title": "Game of Thrones",
+  "language": "en",
+  "durationSeconds": 225.44,
+  "sentencesPerGroup": 2,
+  "groups": [
+    {
+      "start": 9.17,
+      "end": 14.85,
+      "sentences": [
+        {
+          "start": 9.17,
+          "end": 10.39,
+          "text": "My beloved wife,",
+          "blankIndexes": [
+            1
+          ]
+        },
+        {
+          "start": 13.81,
+          "end": 14.85,
+          "text": "I've missed you terribly.",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 19.28,
+      "end": 24.51,
+      "sentences": [
+        {
+          "start": 19.28,
+          "end": 21.42,
+          "text": "Thank you for returning Lady Bolton safely.",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 22.73,
+          "end": 24.51,
+          "text": "Now, dismount and kneel before me.",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 25.29,
+      "end": 31.81,
+      "sentences": [
+        {
+          "start": 25.29,
+          "end": 29.21,
+          "text": "Surrender your army and proclaim me the true Lord of Winterfell and Warden of the North.",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 29.65,
+          "end": 31.81,
+          "text": "I will pardon you for deserting the Knights' Watch.",
+          "blankIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "start": 32.19,
+      "end": 40.64,
+      "sentences": [
+        {
+          "start": 32.19,
+          "end": 35.67,
+          "text": "I will pardon these treasonous lords for betraying my house.",
+          "blankIndexes": [
+            2,
+            5
+          ]
+        },
+        {
+          "start": 39.46,
+          "end": 40.64,
+          "text": "Come, bastard.",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 42.14,
+      "end": 44.34,
+      "sentences": [
+        {
+          "start": 42.14,
+          "end": 43.04,
+          "text": "You don't have the men.",
+          "blankIndexes": []
+        },
+        {
+          "start": 43.42,
+          "end": 44.34,
+          "text": "You don't have the horses.",
+          "blankIndexes": [
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "start": 45.1,
+      "end": 49.93,
+      "sentences": [
+        {
+          "start": 45.1,
+          "end": 46.38,
+          "text": "And you don't have Winterfell.",
+          "blankIndexes": [
+            4
+          ]
+        },
+        {
+          "start": 47.19,
+          "end": 49.93,
+          "text": "Why lead those poor souls into slaughter?",
+          "blankIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "start": 50.67,
+      "end": 54.76,
+      "sentences": [
+        {
+          "start": 50.67,
+          "end": 52.07,
+          "text": "There's no need for a battle.",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 53.96,
+          "end": 54.76,
+          "text": "Get off your horse.",
+          "blankIndexes": [
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "start": 55.88,
+      "end": 59.5,
+      "sentences": [
+        {
+          "start": 55.88,
+          "end": 56.12,
+          "text": "Neal.",
+          "blankIndexes": []
+        },
+        {
+          "start": 58.46,
+          "end": 59.5,
+          "text": "I'm a man of mercy.",
+          "blankIndexes": [
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "start": 65.54,
+      "end": 68.69,
+      "sentences": [
+        {
+          "start": 65.54,
+          "end": 65.96,
+          "text": "You're right.",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 67.71,
+          "end": 68.69,
+          "text": "There's no need for a battle.",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 70.92,
+      "end": 76.32,
+      "sentences": [
+        {
+          "start": 70.92,
+          "end": 72.8,
+          "text": "Thousands of men don't need to die.",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 75.46,
+          "end": 76.32,
+          "text": "Only one of us.",
+          "blankIndexes": []
+        }
+      ]
+    },
+    {
+      "start": 79.46,
+      "end": 82.91,
+      "sentences": [
+        {
+          "start": 79.46,
+          "end": 80.64,
+          "text": "Let's end this the old way.",
+          "blankIndexes": []
+        },
+        {
+          "start": 81.69,
+          "end": 82.91,
+          "text": "You against me.",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 95.77,
+      "end": 98.78,
+      "sentences": [
+        {
+          "start": 95.77,
+          "end": 97.55,
+          "text": "I keep hearing stories about you.",
+          "blankIndexes": [
+            2
+          ]
+        },
+        {
+          "start": 98.66,
+          "end": 98.78,
+          "text": "Bastard.",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 99.59,
+      "end": 105.59,
+      "sentences": [
+        {
+          "start": 99.59,
+          "end": 102.81,
+          "text": "The way people in the north talk about you, you're the great assortsman who ever walked.",
+          "blankIndexes": [
+            2,
+            9
+          ]
+        },
+        {
+          "start": 104.61,
+          "end": 105.59,
+          "text": "Maybe you are that good.",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 107.59,
+      "end": 111.07,
+      "sentences": [
+        {
+          "start": 107.59,
+          "end": 108.15,
+          "text": "Maybe not.",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 109.61,
+          "end": 111.07,
+          "text": "I don't know if I'd beat you.",
+          "blankIndexes": []
+        }
+      ]
+    },
+    {
+      "start": 111.07,
+      "end": 117.11,
+      "sentences": [
+        {
+          "start": 111.07,
+          "end": 114.34,
+          "text": "But I know that my army will beat yours.",
+          "blankIndexes": [
+            8
+          ]
+        },
+        {
+          "start": 116.13,
+          "end": 117.11,
+          "text": "I have 6,000 men.",
+          "blankIndexes": []
+        }
+      ]
+    },
+    {
+      "start": 117.27,
+      "end": 120.25,
+      "sentences": [
+        {
+          "start": 117.27,
+          "end": 118.27,
+          "text": "You have, what?",
+          "blankIndexes": []
+        },
+        {
+          "start": 119.83,
+          "end": 120.25,
+          "text": "Half that?",
+          "blankIndexes": []
+        }
+      ]
+    },
+    {
+      "start": 121.66,
+      "end": 123.44,
+      "sentences": [
+        {
+          "start": 121.66,
+          "end": 121.96,
+          "text": "Not even?",
+          "blankIndexes": []
+        },
+        {
+          "start": 122.2,
+          "end": 123.44,
+          "text": "Aye, you have the numbers.",
+          "blankIndexes": [
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "start": 125.96,
+      "end": 139.08,
+      "sentences": [
+        {
+          "start": 125.96,
+          "end": 128.8,
+          "text": "Will your men want to fight for you when they're here you wouldn't fight for them?",
+          "blankIndexes": [
+            5
+          ]
+        },
+        {
+          "start": 138.42,
+          "end": 139.08,
+          "text": "He's good.",
+          "blankIndexes": []
+        }
+      ]
+    },
+    {
+      "start": 140.11,
+      "end": 146.72,
+      "sentences": [
+        {
+          "start": 140.11,
+          "end": 140.67,
+          "text": "Very good.",
+          "blankIndexes": []
+        },
+        {
+          "start": 142.96,
+          "end": 146.72,
+          "text": "Tell me, will you let your little brother die because you're too proud to surrender?",
+          "blankIndexes": [
+            6,
+            10
+          ]
+        }
+      ]
+    },
+    {
+      "start": 147.12,
+      "end": 148.6,
+      "sentences": [
+        {
+          "start": 147.12,
+          "end": 148.6,
+          "text": "How do we know you have him?",
+          "blankIndexes": []
+        }
+      ]
+    },
+    {
+      "start": 175.68,
+      "end": 178.54,
+      "sentences": [
+        {
+          "start": 175.68,
+          "end": 176.58,
+          "text": "If you want to save him...",
+          "blankIndexes": []
+        },
+        {
+          "start": 176.58,
+          "end": 178.54,
+          "text": "You're going to die tomorrow, Lord Bolton.",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 182.77,
+      "end": 194.32,
+      "sentences": [
+        {
+          "start": 182.77,
+          "end": 183.55,
+          "text": "Sleep well.",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 192.58,
+          "end": 194.32,
+          "text": "She's a fine woman, your sister.",
+          "blankIndexes": [
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "start": 194.32,
+      "end": 203.6,
+      "sentences": [
+        {
+          "start": 194.32,
+          "end": 197.81,
+          "text": "I look forward to having her back in my bed.",
+          "blankIndexes": [
+            2
+          ]
+        },
+        {
+          "start": 202.32,
+          "end": 203.6,
+          "text": "And you're all fine-looking men.",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 204.74,
+      "end": 208.34,
+      "sentences": [
+        {
+          "start": 204.74,
+          "end": 206.54,
+          "text": "My dogs are desperate to meet you.",
+          "blankIndexes": [
+            3
+          ]
+        },
+        {
+          "start": 207.08,
+          "end": 208.34,
+          "text": "I haven't fed them for seven days.",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 208.56,
+      "end": 212.53,
+      "sentences": [
+        {
+          "start": 208.56,
+          "end": 209.2,
+          "text": "They're ravenous.",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 210.33,
+          "end": 212.53,
+          "text": "I wonder which parts they'll try first.",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 213.59,
+      "end": 216.26,
+      "sentences": [
+        {
+          "start": 213.59,
+          "end": 214.17,
+          "text": "Your eyes?",
+          "blankIndexes": []
+        },
+        {
+          "start": 215.68,
+          "end": 216.26,
+          "text": "Your balls?",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 218.64,
+      "end": 223.48,
+      "sentences": [
+        {
+          "start": 218.64,
+          "end": 220.0,
+          "text": "We'll find out soon enough.",
+          "blankIndexes": [
+            4
+          ]
+        },
+        {
+          "start": 222.82,
+          "end": 223.48,
+          "text": "In the morning then,",
+          "blankIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "start": 225.16,
+      "end": 225.44,
+      "sentences": [
+        {
+          "start": 225.16,
+          "end": 225.44,
+          "text": "bastard.",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    }
+  ]
+}

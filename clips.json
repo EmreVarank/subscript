@@ -1,0 +1,57 @@
+[
+  {
+    "id": "sons-of-anarchy",
+    "url": "https://www.youtube.com/watch?v=661f6PkKOL0",
+    "youtubeId": "661f6PkKOL0",
+    "title": "Sons of Anarchy",
+    "level": "B1",
+    "durationSeconds": 141.02,
+    "groupCount": 8,
+    "sentenceCount": 13,
+    "dataFile": "clips/sons-of-anarchy.json"
+  },
+  {
+    "id": "breaking-bad",
+    "url": "https://www.youtube.com/watch?v=MPYlxeG-8_w",
+    "youtubeId": "MPYlxeG-8_w",
+    "title": "Breaking Bad",
+    "level": "B2",
+    "durationSeconds": 176.29,
+    "groupCount": 20,
+    "sentenceCount": 37,
+    "dataFile": "clips/breaking-bad.json"
+  },
+  {
+    "id": "the-office",
+    "url": "https://www.youtube.com/watch?v=gO8N3L_aERg",
+    "youtubeId": "gO8N3L_aERg",
+    "title": "The Office",
+    "level": "B1",
+    "durationSeconds": 275.46,
+    "groupCount": 50,
+    "sentenceCount": 97,
+    "dataFile": "clips/the-office.json"
+  },
+  {
+    "id": "game-of-thrones",
+    "url": "https://www.youtube.com/watch?v=oUjaljMMy2M",
+    "youtubeId": "oUjaljMMy2M",
+    "title": "Game of Thrones",
+    "level": "B2",
+    "durationSeconds": 225.44,
+    "groupCount": 28,
+    "sentenceCount": 54,
+    "dataFile": "clips/game-of-thrones.json"
+  },
+  {
+    "id": "the-godfather",
+    "url": "https://www.youtube.com/watch?v=4m8f8dLa_ig",
+    "youtubeId": "4m8f8dLa_ig",
+    "title": "The Godfather",
+    "level": "C1",
+    "durationSeconds": 288.72,
+    "groupCount": 38,
+    "sentenceCount": 75,
+    "dataFile": "clips/the-godfather.json"
+  }
+]

@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>subscript. — İngilizce Dinleme Pratiği</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="app-header">
+        <a class="brand" href="#">subscript<span>.</span></a>
+        <button type="button" class="library-trigger-btn" id="libraryTriggerBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <span>Klip Seç</span>
+        </button>
+        <div class="session-label"><span class="pulse"></span> DİNLEME PRATİĞİ</div>
+        <div class="streak-badge" id="streakBadge" title="Doğru seri sayısı">
+          <svg class="flame-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 23c-4.97 0-9-3.8-9-8.5 0-3.37 2.06-6.68 4.2-8.9.43-.45 1.18-.18 1.25.43.2 1.77 1.09 3.19 2.55 3.97.4.21.87-.13.81-.58-.33-2.45.62-5.07 2.44-6.92.38-.38 1.02-.15 1.07.38.3 3.01 2.22 5.51 3.98 7.37C20.46 12.44 21 13.9 21 15.5c0 4.7-4.03 8.5-9 8.5z"/>
+          </svg>
+          <span class="streak-num" id="streakCount">0</span>
+          <span class="streak-label">SERİ</span>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-copy">
+            <span id="stepCount">— / —</span>
+            <span id="progressPercent">%0 TAMAMLANDI</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        </div>
+        <button class="exit" type="button">Çıkış</button>
+      </header>
+
+      <section class="lesson-head">
+        <div>
+          <p class="eyebrow" id="clipEyebrow">FİLM KESİTİ · B1</p>
+          <div class="title-with-switch">
+            <h1 id="clipTitle">Yükleniyor…</h1>
+            <button type="button" class="change-clip-link" id="changeClipLink">Değiştir ▾</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Ana 2 Sütunlu Grid: Sol (Video + Egzersiz), Sağ (Klip Akışı) -->
+      <div class="main-layout">
+        <section class="practice-column">
+          <div class="video-card">
+            <div class="video-stage" id="videoStage">
+              <div id="youtubePlayer"></div>
+              <!-- Video Overlay to prevent opening captions/settings or scrubbing YouTube directly -->
+              <div class="video-click-overlay" id="videoOverlay" aria-label="Videoyu duraklat/oynat"></div>
+              <!-- Altyazı maskeleme şeridi (YouTube inatla altyazı render ederse alt bandı örter) -->
+              <div class="subtitles-blocker-mask" aria-hidden="true"></div>
+              <div class="timebar">
+                <span id="segmentTime">00:00 — 00:00</span>
+                <span>subscript.</span>
+              </div>
+            </div>
+            <div class="video-controls">
+              <button type="button" class="round-button" id="prevPartButton" title="Önceki parça (Shift + ←)" aria-label="Önceki parça">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+              </button>
+              <button type="button" class="round-button" id="backButton" title="Başa sar (R)" aria-label="Başa dön">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+              </button>
+              <button type="button" class="listen-button" id="listenButton">
+                <span class="play-icon-wrap" id="playIconWrap">
+                  <svg class="play-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                </span>
+                <span id="listenButtonText">Oynat</span>
+                <div class="audio-wave" id="audioWave" aria-hidden="true">
+                  <span></span><span></span><span></span><span></span>
+                </div>
+              </button>
+              <button type="button" class="speed-button" id="speedButton" title="Oynatma hızı">1×</button>
+            </div>
+          </div>
+
+          <div class="answer-card">
+            <div class="answer-top">
+              <span class="segment-number" id="segmentNumber">PARÇA 01</span>
+              <div class="hint-status-wrap">
+                <span class="hint-count" id="hintCount">3 İPUCU HAKKI</span>
+              </div>
+            </div>
+            <div class="fill-sentence" id="fillSentence" aria-label="Boşluk doldurma cümleleri"></div>
+            <div class="answer-actions">
+              <div class="shortcuts-legend">
+                <span class="shortcut-pill"><kbd>Space</kbd> Oynat</span>
+                <span class="shortcut-pill"><kbd>Enter</kbd> Kontrol Et</span>
+                <span class="shortcut-pill"><kbd>Tab</kbd> İpucu</span>
+              </div>
+              <div class="action-buttons-group">
+                <button type="button" class="hint-button" id="hintButton">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7z"/></svg>
+                  <span>İpucu al</span>
+                </button>
+                <button type="button" class="check-button" id="checkButton">
+                  <span>Kontrol et</span>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="feedback" id="feedback" aria-live="polite"></div>
+          </div>
+        </section>
+
+        <!-- Sağ Taraf: Dikey Klip Akışı -->
+        <aside class="transcript-sidebar">
+          <div class="panel-title">
+            <span>KLİP AKIŞI</span>
+            <span class="panel-line"></span>
+          </div>
+          <div class="segment-list-vertical" id="segmentList"></div>
+        </aside>
+      </div>
+
+      <!-- Klip Kütüphanesi / Seçim Modalı -->
+      <div class="library-modal-backdrop" id="libraryModal" aria-hidden="true">
+        <div class="library-card">
+          <div class="library-header">
+            <div>
+              <h3>Klip Kütüphanesi</h3>
+              <p class="library-sub">Çalışmak istediğin film veya dizi kesitini seç.</p>
+            </div>
+            <button type="button" class="close-modal-btn" id="closeLibraryBtn">✕</button>
+          </div>
+          <div class="library-grid" id="libraryGrid">
+            <!-- JavaScript dinamik dolduracak -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Tebrikler / Bitirme Modalı -->
+      <div class="completion-modal-backdrop" id="completionModal" aria-hidden="true">
+        <div class="completion-card">
+          <div class="completion-icon-wrap">
+            <svg class="trophy-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+              <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+              <path d="M4 22h16"/>
+              <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+              <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+              <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>
+            </svg>
+          </div>
+          <h2>Tebrikler, Klip Tamamlandı!</h2>
+          <p class="completion-sub">Tüm parçaları başarıyla dinledin ve tamamladın.</p>
+          <div class="stats-row">
+            <div class="stat-box">
+              <span class="stat-val" id="statAccuracy">%100</span>
+              <span class="stat-lbl">DOĞRULUK</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-val" id="statMaxStreak">0</span>
+              <span class="stat-lbl">EN YÜKSEK SERİ</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-val" id="statTotalParts">0</span>
+              <span class="stat-lbl">PARÇA</span>
+            </div>
+          </div>
+          <button type="button" class="restart-modal-btn" id="restartModalBtn">Tekrar Çalış</button>
+        </div>
+      </div>
+      <canvas id="confettiCanvas"></canvas>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

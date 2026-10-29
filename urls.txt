@@ -1,0 +1,8 @@
+# Bu dosyaya her satıra bir YouTube linki ve isteğe bağlı başlık yazabilirsiniz.
+# Format: URL | Başlık
+# Örnek:
+https://www.youtube.com/watch?v=661f6PkKOL0 | Sons of Anarchy
+https://www.youtube.com/watch?v=MPYlxeG-8_w | Breaking Bad
+https://www.youtube.com/watch?v=oUjaljMMy2M | Game of Thrones
+https://www.youtube.com/watch?v=gO8N3L_aERg | The Office
+https://www.youtube.com/watch?v=4m8f8dLa_ig | The Godfather
