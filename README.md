@@ -50,14 +50,31 @@ python transcribe.py --url "https://www.youtube.com/watch?v=VIDEO_ID" --title "F
 
 ### 3. Uygulamayı Başlatın
 
-Statik dosyaları servis etmek için yerel bir HTTP sunucusu başlatın:
+Node.js API'si ve frontend'i birlikte başlatın (Node.js 18+):
 
 ```powershell
-python -m http.server 8080
+npm start
 ```
 
-Tarayıcınızda açın:  
+Tarayıcınızda açın:
 👉 **`http://localhost:8080`**
+
+İlk girişte kayıt olup seviyenizi seçebilirsiniz. Seviyesini bilmeyen kullanıcılar için üç soruluk mini seviye testi bulunur. Örneğin B1 kullanıcılarına B1 ve B2 klipleri önerilir.
+
+Admin hesabını belirlemek için sunucuyu başlatmadan önce:
+
+```powershell
+$env:ADMIN_EMAIL = "admin@example.com"
+npm start
+```
+
+Admin klip ekleme endpoint'i yalnızca bu e-posta ile giriş yapan kullanıcıya açıktır:
+
+```text
+POST /api/admin/clips
+```
+
+Klip ekleme gövdesi `id`, `title`, `level`, `youtubeId` ve `dataFile` alanlarını içermelidir. Bu ilk backend sürümü kullanıcıları `data/users.json` dosyasında saklar; üretime geçerken PostgreSQL'e taşınacaktır.
 
 ---
 
@@ -67,6 +84,9 @@ Tarayıcınızda açın:
 liscript/
 ├── clips/                # Üretilen alıştırma JSON ve TXT transkriptleri
 ├── app.js                # Frontend etkileşim mantığı ve YouTube Player yönetimi
+├── server.js             # Node.js API, auth ve admin klip endpoint'leri
+├── package.json          # Node.js çalıştırma komutları
+├── data/users.json       # Yerel MVP kullanıcı verisi (git dışında)
 ├── batch_transcribe.py   # urls.txt üzerinden toplu video işleme scripti
 ├── clips.json            # Klip kataloğu ve seviye verileri
 ├── index.html            # Web arayüzü

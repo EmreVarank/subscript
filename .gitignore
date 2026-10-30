@@ -23,6 +23,7 @@ ENV/
 Thumbs.db
 .vscode/
 .idea/
+data/users.json
 
 # Empty legacy outputs folder if any
 outputs/

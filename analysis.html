@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>liscript — Proje Analizi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --ink: #eaf5ef;
+        --muted: #9eb4aa;
+        --bg: #091411;
+        --card: #10221c;
+        --card-2: #142a22;
+        --line: #244238;
+        --green: #8ce2b3;
+        --green-strong: #32bc78;
+        --purple: #c1a8ff;
+        --orange: #ffad7d;
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 85% 0%, rgba(119, 83, 211, .16), transparent 30rem),
+          radial-gradient(circle at 0% 20%, rgba(50, 188, 120, .12), transparent 28rem),
+          var(--bg);
+        font-family: Manrope, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        line-height: 1.65;
+      }
+      a { color: var(--green); }
+      .page { width: min(1120px, calc(100% - 40px)); margin: 0 auto; }
+      .hero { min-height: 68vh; display: grid; align-content: center; padding: 80px 0 64px; }
+      .eyebrow, .kicker {
+        color: var(--green);
+        font: 500 12px "DM Mono", monospace;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+      }
+      h1, h2, h3 { line-height: 1.12; margin: 0 0 18px; letter-spacing: -.04em; }
+      h1 { max-width: 860px; font-size: clamp(42px, 8vw, 88px); }
+      h2 { font-size: clamp(28px, 4vw, 45px); }
+      h3 { font-size: 20px; color: var(--green); }
+      p { color: var(--muted); margin: 0 0 16px; }
+      .lead { max-width: 760px; font-size: clamp(18px, 2.2vw, 24px); color: #c9ddd3; }
+      .brand { color: var(--green); font-weight: 800; }
+      .brand span { color: var(--purple); }
+      .hero-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 32px; }
+      .pill {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 8px 13px;
+        color: #c1d5ca;
+        background: rgba(16, 34, 28, .72);
+        font-size: 13px;
+      }
+      nav {
+        position: sticky; top: 0; z-index: 2;
+        border-block: 1px solid var(--line);
+        background: rgba(9, 20, 17, .9);
+        backdrop-filter: blur(14px);
+      }
+      nav .page { display: flex; gap: 20px; overflow-x: auto; padding: 14px 0; }
+      nav a { white-space: nowrap; text-decoration: none; font-size: 13px; }
+      section { padding: 82px 0; border-bottom: 1px solid var(--line); }
+      .section-intro { max-width: 720px; margin-bottom: 32px; }
+      .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+      .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 24px;
+        background: linear-gradient(145deg, rgba(20, 42, 34, .9), rgba(16, 34, 28, .8));
+      }
+      .card strong { color: var(--ink); }
+      .number {
+        display: block; margin-bottom: 18px;
+        color: var(--purple); font: 500 13px "DM Mono", monospace;
+      }
+      .flow { display: grid; gap: 10px; }
+      .flow-step {
+        display: grid; grid-template-columns: 42px 1fr; gap: 14px; align-items: start;
+        padding: 16px; border-left: 2px solid var(--green-strong);
+        background: rgba(16, 34, 28, .8);
+      }
+      .flow-step b { color: var(--green); font-family: "DM Mono", monospace; }
+      .flow-step p { margin: 3px 0 0; font-size: 14px; }
+      code, pre {
+        font-family: "DM Mono", monospace;
+        font-size: 13px;
+      }
+      pre {
+        overflow-x: auto; margin: 0; padding: 20px; border-radius: 14px;
+        color: #ccebd9; background: #07100d; border: 1px solid var(--line);
+      }
+      .metric { font-size: 34px; font-weight: 800; color: var(--green); }
+      .metric-label { color: var(--muted); font-size: 13px; }
+      ul { color: var(--muted); padding-left: 20px; }
+      li { margin: 7px 0; }
+      .good { border-top: 3px solid var(--green-strong); }
+      .warn { border-top: 3px solid var(--orange); }
+      .next { border-top: 3px solid var(--purple); }
+      footer { padding: 50px 0 80px; color: var(--muted); font-size: 13px; }
+      @media (max-width: 720px) {
+        .page { width: min(100% - 28px, 1120px); }
+        .hero { min-height: auto; padding-top: 60px; }
+        section { padding: 56px 0; }
+        .grid, .grid.three { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="hero page">
+      <div class="eyebrow">Ürün ve teknik analiz · 2026</div>
+      <h1><span class="brand">subscript<span>.</span></span> nasıl çalışıyor?</h1>
+      <p class="lead">
+        liscript, film ve dizi sahnelerini kontrollü bir dinleme laboratuvarına
+        dönüştüren; konuşmayı otomatik olarak zaman damgalı alıştırmalara ayıran
+        yapay zeka destekli bir İngilizce öğrenme platformudur.
+      </p>
+      <div class="hero-meta">
+        <span class="pill">Frontend: HTML + CSS + Vanilla JavaScript</span>
+        <span class="pill">Data pipeline: Python</span>
+        <span class="pill">Speech-to-text: faster-whisper</span>
+        <span class="pill">Video: YouTube IFrame API</span>
+      </div>
+    </header>
+
+    <nav>
+      <div class="page">
+        <a href="#problem">Problem</a>
+        <a href="#method">Metodoloji</a>
+        <a href="#architecture">Mimari</a>
+        <a href="#logic">Mantık</a>
+        <a href="#pedagogy">Öğrenme tasarımı</a>
+        <a href="#evaluation">Değerlendirme</a>
+        <a href="#roadmap">Yol haritası</a>
+      </div>
+    </nav>
+
+    <main>
+      <section id="problem">
+        <div class="page">
+          <div class="section-intro">
+            <div class="kicker">01 · Ürün fikri</div>
+            <h2>Gerçek konuşmayı, ölçülebilir pratiğe çevirmek</h2>
+            <p>
+              Klasik kelime ve gramer egzersizleri, öğrencinin doğal hızdaki
+              konuşmayı ayırt etme becerisini tek başına geliştirmez. liscript
+              bu boşluğu, öğrencinin duyduğu cümleyi kendi hafızasından yeniden
+              kurmasını isteyerek kapatır.
+            </p>
+          </div>
+          <div class="grid three">
+            <article class="card">
+              <span class="number">01</span>
+              <h3>Otantik girdi</h3>
+              <p>Film ve dizi diyalogları; ders kitabı dilinden daha doğal ritim, telaffuz ve bağlam sunar.</p>
+            </article>
+            <article class="card">
+              <span class="number">02</span>
+              <h3>Aktif hatırlama</h3>
+              <p>Altyazıyı okumak yerine eksik kelimeleri harf harf üretmek, dinleme ile geri çağırmayı birleştirir.</p>
+            </article>
+            <article class="card">
+              <span class="number">03</span>
+              <h3>Anında geri bildirim</h3>
+              <p>Doğru cevap, hata, ipucu kullanımı ve seri bilgisi aynı oturum içinde görünür hale gelir.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="method">
+        <div class="page">
+          <div class="section-intro">
+            <div class="kicker">02 · Metodoloji</div>
+            <h2>Veriden egzersize dört aşamalı üretim hattı</h2>
+            <p>
+              İçerik üretimi manuel cümle yazımıyla değil, tekrar üretilebilir
+              bir veri işleme hattıyla yapılır. Böylece yeni bir YouTube linki,
+              aynı kurallar kullanılarak yeni bir ders paketine dönüşür.
+            </p>
+          </div>
+          <div class="flow">
+            <div class="flow-step"><b>01</b><div><strong>Kaynak seçimi</strong><p><code>urls.txt</code> içindeki YouTube URL’si ve başlık okunur. <code>batch_transcribe.py</code> birden fazla videoyu sırayla işler.</p></div></div>
+            <div class="flow-step"><b>02</b><div><strong>Ses çıkarma</strong><p><code>yt-dlp</code> en uygun ses akışını indirir. Geçici klasör kullanıldığı için ham ses kalıcı olarak projeye yazılmaz.</p></div></div>
+            <div class="flow-step"><b>03</b><div><strong>Konuşmayı çözümleme</strong><p><code>faster-whisper</code>, İngilizce konuşmayı kelime seviyesinde başlangıç-bitiş zamanlarıyla çıkarır. VAD, sessizlikleri ayıklamaya yardım eder.</p></div></div>
+            <div class="flow-step"><b>04</b><div><strong>Alıştırma paketleme</strong><p>Cümleler noktalama ve 0.65 saniyelik duraklamalara göre bölünür; 5+ harfli kelimelerden boşluklar seçilir ve JSON katalog güncellenir.</p></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="architecture">
+        <div class="page">
+          <div class="section-intro">
+            <div class="kicker">03 · Teknik mimari</div>
+            <h2>Kurulumu kolay, sorumlulukları ayrılmış bir yapı</h2>
+            <p>
+              Uygulama bir backend sunucusuna bağlı olmadan statik dosya olarak
+              çalışabilir. Ağır işlem gerektiren transkripsiyon ise içerik
+              hazırlama aşamasında Python tarafında gerçekleştirilir.
+            </p>
+          </div>
+          <div class="grid">
+            <article class="card">
+              <h3>İçerik üretim katmanı</h3>
+              <ul>
+                <li><strong>transcribe.py:</strong> tek videoyu indirir, transkribe eder ve JSON üretir.</li>
+                <li><strong>batch_transcribe.py:</strong> URL listesini parse eder ve işlemleri sıraya koyar.</li>
+                <li><strong>faster-whisper:</strong> kelime zamanlaması ve konuşma metninin temel kaynağıdır.</li>
+                <li><strong>clips/:</strong> insan tarafından okunabilir TXT ve makine tarafından tüketilen JSON dosyalarını tutar.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <h3>Sunum ve etkileşim katmanı</h3>
+              <ul>
+                <li><strong>index.html:</strong> oynatıcı, cevap kartı, klip akışı ve modalları tanımlar.</li>
+                <li><strong>style.css:</strong> karanlık tema, responsive grid ve durum stillerini yönetir.</li>
+                <li><strong>app.js:</strong> durum makinesi, veri yükleme, cevap kontrolü ve klavye erişimini yürütür.</li>
+                <li><strong>YouTube IFrame API:</strong> yalnızca ilgili parçanın başlangıç-bitiş aralığını oynatır.</li>
+              </ul>
+            </article>
+          </div>
+          <pre aria-label="Dosya yapısı">urls.txt
+  ↓
+batch_transcribe.py → transcribe.py → faster-whisper + yt-dlp
+  ↓
+clips/*.json + clips.json
+  ↓
+index.html + style.css + app.js → YouTube IFrame API</pre>
+        </div>
+      </section>
+
+      <section id="logic">
+        <div class="page">
+          <div class="section-intro">
+            <div class="kicker">04 · Uygulama mantığı</div>
+            <h2>Durum odaklı ve zaman kontrollü bir öğrenme döngüsü</h2>
+            <p>
+              Frontend’in merkezinde <code>groups</code>, <code>current</code>,
+              <code>hintStage</code> ve oyunlaştırma sayaçlarından oluşan küçük
+              bir durum modeli bulunur. Her cevap veya klip değişimi bu durumu
+              yeniden render eder.
+            </p>
+          </div>
+          <div class="grid">
+            <article class="card good">
+              <h3>Parça döngüsü</h3>
+              <p>Aktif grubun başlangıç zamanı ve bitiş zamanı alınır. Oynatma başında <code>seekTo</code> çağrılır; 100 ms’lik izleme döngüsü bitişe gelince videoyu durdurur.</p>
+            </article>
+            <article class="card good">
+              <h3>Cevap doğrulama</h3>
+              <p>Her harf kutusunun <code>data-expected</code> değeriyle kullanıcı girdisi karşılaştırılır. Eksik cevap ayrı, yanlış cevap ayrı geri bildirim üretir.</p>
+            </article>
+            <article class="card good">
+              <h3>İpucu kademeleri</h3>
+              <p>1) Türkçe anlam balonu, 2) ilk harfin yerleştirilmesi, 3) tüm kelimenin doldurulması. İpucu kullanımı ilk deneme başarısını etkiler.</p>
+            </article>
+            <article class="card good">
+              <h3>İlerleme ve oyunlaştırma</h3>
+              <p>Doğru cevap streak’i artırır; hata streak’i sıfırlar. Son parçada doğruluk, en yüksek seri ve toplam parça sayısı özetlenir; konfetiyle kapanış yapılır.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="pedagogy">
+        <div class="page">
+          <div class="section-intro">
+            <div class="kicker">05 · Öğrenme tasarımı</div>
+            <h2>İpucu, tekrar ve zorluk kademesi birlikte çalışıyor</h2>
+            <p>
+              Sistem öğrenciyi tek seferde başarısız bırakmak yerine, yardımı
+              kontrollü şekilde artırır. Bu yaklaşım bilişsel yükü azaltırken
+              öğrencinin cevabı tamamen görmeden önce birkaç kez denemesini sağlar.
+            </p>
+          </div>
+          <div class="grid three">
+            <article class="card"><div class="metric">3</div><div class="metric-label">ipucu aşaması</div><p>Anlamdan ilk harfe, ilk harften tam kelimeye ilerleyen yardım.</p></article>
+            <article class="card"><div class="metric">0.65s</div><div class="metric-label">cümle bölme eşiği</div><p>Doğal konuşma duraklamalarını cümle sınırı olarak kullanma.</p></article>
+            <article class="card"><div class="metric">5+</div><div class="metric-label">minimum kelime uzunluğu</div><p>“with”, “that” gibi kısa bağlaçlar yerine anlam taşıyan kelimeleri hedefleme.</p></article>
+          </div>
+          <div class="card" style="margin-top:16px">
+            <h3>Seviye kurgusu</h3>
+            <p>
+              Katalogda B1, B2 ve C1 etiketleri bulunur. Bu etiketler mevcut
+              içerik kataloğunda tanımlanır ve kullanıcıya klip seçiminde yol
+              gösterir. Gelecek aşamada seviye ataması; kelime sıklığı, cümle
+              uzunluğu, konuşma hızı ve uzman doğrulamasıyla otomatikleştirilebilir.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="evaluation">
+        <div class="page">
+          <div class="section-intro">
+            <div class="kicker">06 · Mevcut durum ve değerlendirme</div>
+            <h2>Çalışan prototipten ölçülebilir ürüne</h2>
+            <p>
+              Proje, içerik üretiminden tarayıcı içindeki cevap döngüsüne kadar
+              uçtan uca çalışır. Katalogdaki beş örnek klip toplam 144 grup ve
+              276 cümlelik bir içerik tabanı oluşturur.
+            </p>
+          </div>
+          <div class="grid">
+            <article class="card good">
+              <h3>Güçlü taraflar</h3>
+              <ul>
+                <li>Yeni içerik ekleme süreci tek bir URL listesiyle tekrarlanabilir.</li>
+                <li>Kelime zaman damgaları, video ile alıştırma arasında sağlam bağ kurar.</li>
+                <li>UI, fare kullanımının yanında Space, R, Tab ve Enter kısayollarını destekler.</li>
+                <li>JSON tabanlı veri modeli backend olmadan taşınabilir ve denetlenebilir.</li>
+              </ul>
+            </article>
+            <article class="card warn">
+              <h3>Teknik riskler</h3>
+              <ul>
+                <li>İpucu sözlüğü şu anda sınırlı ve statik; bilinmeyen kelimelerde genel mesaj gösterilir.</li>
+                <li>Transkripsiyon kalitesi ses, aksan, müzik ve konuşmacı üst üste binmesine bağlıdır.</li>
+                <li>YouTube gömülü oynatıcı, yerel <code>file://</code> açılışında referrer kaynaklı kısıtlarla karşılaşabilir; HTTP sunucusu önerilir.</li>
+                <li>Bazı frontend hata yakalamaları kullanıcıya ayrıntılı hata mesajı vermeden devam eder.</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="roadmap">
+        <div class="page">
+          <div class="section-intro">
+            <div class="kicker">07 · Geliştirme yol haritası</div>
+            <h2>Bir sonraki teknik ve ürün adımları</h2>
+          </div>
+          <div class="grid three">
+            <article class="card next"><h3>İçerik kalitesi</h3><p>Whisper çıktısı için insan onay ekranı, konuşmacı ayrımı, daha zengin sözlük ve kelime sıklığı tabanlı boşluk seçimi.</p></article>
+            <article class="card next"><h3>Öğrenci modeli</h3><p>Kelime bazlı hata geçmişi, aralıklı tekrar, kişiselleştirilmiş klip önerileri ve gerçek zamanlı öğrenme analitiği.</p></article>
+            <article class="card next"><h3>Üretim mimarisi</h3><p>İçerik hazırlama ile çalışma deneyimini ayıran API, kullanıcı hesabı, kalıcı ilerleme ve merkezi hata/telemetri sistemi.</p></article>
+          </div>
+          <div class="card" style="margin-top:16px">
+            <h3>Sonuç</h3>
+            <p>
+              liscript’in temel başarısı, “video izleme”yi pasif bir etkinlik
+              olmaktan çıkarıp ölçülebilir bir mikro-öğrenme döngüsüne
+              dönüştürmesidir. Python tarafı konuşmayı yapılandırır; JavaScript
+              tarafı bu yapıyı zaman kontrollü, geri bildirimli ve oyunlaştırılmış
+              bir deneyime çevirir. Mimari küçük tutulduğu için prototip hızlı
+              geliştirilmiş, veri formatı açık olduğu için de daha büyük bir
+              ürüne evrilebilecek bir temel kurulmuştur.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="page">
+      Bu doküman, <code>liscript</code> kaynak kodunun mevcut davranışı ve veri
+      akışı incelenerek hazırlanmıştır. Projeyi çalıştırmak için
+      <code>python -m http.server 8080</code> komutu önerilir.
+    </footer>
+  </body>
+</html>

@@ -1,5 +1,5 @@
 // ─── Config ───────────────────────────────────────────────────────────────────
-const CLIPS_CATALOG = "clips.json";
+const CLIPS_CATALOG = "/api/clips";
 
 // Sözlük eşleştirmeleri (Akıllı İpucu seviye 1 için)
 const DICTIONARY = {
@@ -119,7 +119,9 @@ function render() {
 
   // Header / Progress
   $("stepCount").textContent = `${current + 1} / ${groups.length}`;
-  $("progressPercent").textContent = `%${Math.round(((current + 1) / groups.length) * 100)} TAMAMLANDI`;
+  if ($("progressPercent")) {
+    $("progressPercent").textContent = `%${Math.round(((current + 1) / groups.length) * 100)} TAMAMLANDI`;
+  }
   $("progressFill").style.width = `${((current + 1) / groups.length) * 100}%`;
 
   // Segment meta
@@ -442,6 +444,7 @@ function updateStreakUI() {
   const badge = $("streakBadge");
   const count = $("streakCount");
   if (!badge || !count) return;
+  if (!badge || !count) return;
 
   count.textContent = currentStreak;
   if (currentStreak >= 2) {
@@ -584,15 +587,288 @@ if ($("restartModalBtn")) {
 let globalCatalog = [];
 let currentDataFile = "";
 
+let authToken = localStorage.getItem("subscript_token") || sessionStorage.getItem("subscript_token") || "";
+let authUser = null;
+const authBackdrop = $("authBackdrop");
+const loginBackdrop = $("loginBackdrop");
+
+function applyTheme(theme) {
+  const isDark = theme === "dark";
+  document.body.classList.toggle("dark-theme", isDark);
+  $(`theme-${isDark ? "dark" : "light"}`).checked = true;
+}
+
+function authHeaders() {
+  return authToken ? { Authorization: `Bearer ${authToken}` } : {};
+}
+
+async function apiRequest(path, options = {}) {
+  const res = await fetch(path, {
+    ...options,
+    headers: { "Content-Type": "application/json", ...authHeaders(), ...(options.headers || {}) }
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error || "İstek başarısız.");
+  return body;
+}
+
+function showLevelPicker() {
+  $("levelBackdrop").classList.add("open");
+}
+
+async function saveLevel(level) {
+  try {
+    localStorage.setItem("subscript_level", level);
+    if (!authToken) {
+      $("levelBackdrop").classList.remove("open");
+      window.location.reload();
+      return;
+    }
+    const result = await apiRequest("/api/profile/level", { method: "POST", body: JSON.stringify({ level }) });
+    authUser = result.user;
+    $("levelBackdrop").classList.remove("open");
+    window.location.reload();
+  } catch (error) {
+    $("authError").textContent = error.message;
+  }
+}
+
+async function loadCatalog() {
+  const level = authUser?.level || localStorage.getItem("subscript_level");
+  const result = await apiRequest(level ? `${CLIPS_CATALOG}?level=${encodeURIComponent(level)}` : CLIPS_CATALOG);
+  globalCatalog = result.clips;
+}
+
+async function ensureAuthenticated() {
+  if (!authToken) return false;
+  try {
+    authUser = (await apiRequest("/api/me")).user;
+    return true;
+  } catch {
+    localStorage.removeItem("subscript_token");
+    sessionStorage.removeItem("subscript_token");
+    authToken = "";
+    return false;
+  }
+}
+
+function setupAuth() {
+  const showStep = (step) => {
+    ["welcomeStep", "profileStep"].forEach((id) => {
+      const element = $(id);
+      if (element) element.hidden = true;
+    });
+    const target = $(step);
+    if (target) target.hidden = false;
+  };
+  showStep("welcomeStep");
+  $("welcomeContinue").addEventListener("click", () => showStep("profileStep"));
+  $("profileContinue").addEventListener("click", () => {
+    const name = $("authName").value.trim();
+    if (!name) {
+      $("authError").textContent = "Adını yazman yeterli.";
+      return;
+    }
+    localStorage.setItem("subscript_name", name);
+    $("authBackdrop").classList.remove("open");
+    showLevelPicker();
+  });
+  $("skipOnboarding").addEventListener("click", () => {
+    $("authBackdrop").classList.remove("open");
+  });
+  document.querySelectorAll("[data-level]").forEach((button) => button.addEventListener("click", () => saveLevel(button.dataset.level)));
+  $("startTestButton").addEventListener("click", () => {
+    $("startTestButton").hidden = true;
+    $("levelOptions").hidden = true;
+    $("levelTest").hidden = false;
+    runLevelTest();
+  });
+  $("skipLevelButton").addEventListener("click", () => $("levelBackdrop").classList.remove("open"));
+}
+
+function setLoginError(id, message) {
+  const element = $(id);
+  if (element) element.textContent = message;
+}
+
+function setLoginBusy(busy) {
+  const button = $("loginSubmitButton");
+  const label = $("loginSubmitLabel");
+  if (!button || !label) return;
+  button.disabled = busy;
+  label.textContent = busy ? "Giriş yapılıyor…" : "Giriş yap";
+  $("loginForm").querySelectorAll("input, button").forEach((element) => {
+    if (element.id !== "closeLoginButton" && element.id !== "loginRegisterHint") element.disabled = busy;
+  });
+}
+
+function closeLoginModal() {
+  if (!loginBackdrop) return;
+  loginBackdrop.classList.remove("open");
+  loginBackdrop.setAttribute("aria-hidden", "true");
+}
+
+function openLoginModal() {
+  if (!loginBackdrop) return;
+  $("profileMenu").hidden = true;
+  $("loginForm").reset();
+  setLoginError("loginEmailError", "");
+  setLoginError("loginPasswordError", "");
+  setLoginError("loginSubmitError", "");
+  $("loginPassword").type = "password";
+  $("toggleLoginPassword").textContent = "Göster";
+  loginBackdrop.classList.add("open");
+  loginBackdrop.setAttribute("aria-hidden", "false");
+  window.setTimeout(() => $("loginEmail").focus(), 100);
+}
+
+async function submitLogin(event) {
+  event.preventDefault();
+  if (authToken) {
+    closeLoginModal();
+    return;
+  }
+
+  const email = $("loginEmail").value.trim();
+  const password = $("loginPassword").value;
+  setLoginError("loginEmailError", !email ? "E-posta adresini yaz." : !email.includes("@") ? "Geçerli bir e-posta adresi yaz." : "");
+  setLoginError("loginPasswordError", !password ? "Şifreni yaz." : "");
+  setLoginError("loginSubmitError", "");
+  if (!email || !email.includes("@") || !password) return;
+
+  setLoginBusy(true);
+  try {
+    const result = await apiRequest("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password, remember: $("loginRemember").checked })
+    });
+    authToken = result.token;
+    authUser = result.user;
+    if ($("loginRemember").checked) {
+      localStorage.setItem("subscript_token", authToken);
+      sessionStorage.removeItem("subscript_token");
+    } else {
+      sessionStorage.setItem("subscript_token", authToken);
+      localStorage.removeItem("subscript_token");
+    }
+    if (authUser.name) localStorage.setItem("subscript_name", authUser.name);
+    closeLoginModal();
+    updateProfileUI();
+    await loadCatalog();
+  } catch (error) {
+    setLoginError("loginSubmitError", error.message || "Giriş yapılamadı. Lütfen tekrar dene.");
+  } finally {
+    setLoginBusy(false);
+  }
+}
+
+function updateProfileUI() {
+  const storedName = localStorage.getItem("subscript_name");
+  const name = authUser?.name || storedName || "Misafir";
+  const level = authUser?.level || localStorage.getItem("subscript_level");
+  const language = localStorage.getItem("subscript_language") || "en";
+  const flags = { en: "🇬🇧", de: "🇩🇪", fr: "🇫🇷", es: "🇪🇸" };
+  const initial = name.trim().charAt(0).toUpperCase() || "S";
+  $("headerAvatar").textContent = initial;
+  $("menuAvatar").textContent = initial;
+  $("headerProfileName").textContent = name;
+  $("menuProfileName").textContent = name;
+  $("headerLanguageFlag").textContent = flags[language] || flags.en;
+  $("menuProfileLevel").textContent = level ? `İngilizce · ${level}` : "İngilizce · Seviye seçilmedi";
+  $("profileLogin").hidden = Boolean(authUser);
+  $("profileLogout").hidden = !authUser;
+}
+
+function setupNavigation() {
+  updateProfileUI();
+  applyTheme(localStorage.getItem("subscript_theme") || "light");
+  document.querySelectorAll('input[name="theme"]').forEach((input) => {
+    input.addEventListener("change", () => {
+      localStorage.setItem("subscript_theme", input.value);
+      applyTheme(input.value);
+    });
+  });
+  $("headerProfileButton").addEventListener("click", () => {
+    const menu = $("profileMenu");
+    menu.hidden = !menu.hidden;
+  });
+  $("profileLogin").addEventListener("click", openLoginModal);
+  $("closeLoginButton").addEventListener("click", closeLoginModal);
+  $("loginBackdrop").addEventListener("click", (event) => {
+    if (event.target === $("loginBackdrop")) closeLoginModal();
+  });
+  $("loginForm").addEventListener("submit", submitLogin);
+  $("toggleLoginPassword").addEventListener("click", () => {
+    const input = $("loginPassword");
+    const visible = input.type === "text";
+    input.type = visible ? "password" : "text";
+    $("toggleLoginPassword").setAttribute("aria-label", visible ? "Şifreyi göster" : "Şifreyi gizle");
+    $("toggleLoginPassword").classList.toggle("is-visible", !visible);
+  });
+  $("loginRegisterHint").addEventListener("click", () => {
+    setLoginError("loginSubmitError", "Kayıt olma akışı yakında aktif olacak. Şimdilik misafir olarak devam edebilirsin.");
+  });
+  $("forgotPasswordButton").addEventListener("click", () => {
+    setLoginError("loginSubmitError", "Şifre yenileme akışı yakında aktif olacak.");
+  });
+  ["googleLoginButton", "appleLoginButton"].forEach((id) => {
+    $(id).addEventListener("click", () => {
+      setLoginError("loginSubmitError", "Sosyal medya ile giriş yakında aktif olacak.");
+    });
+  });
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".header-profile-wrap")) $("profileMenu").hidden = true;
+  });
+  document.querySelectorAll(".side-nav-item, [data-profile-action]").forEach((item) => {
+    item.addEventListener("click", () => {
+      const section = item.dataset.section || item.dataset.profileAction;
+      document.querySelectorAll(".side-nav-item").forEach((navItem) => navItem.classList.toggle("active", navItem.dataset.section === section));
+      $("profileMenu").hidden = true;
+      if (section === "learn") window.scrollTo({ top: 0, behavior: "smooth" });
+      if (section === "profile") updateProfileUI();
+    });
+  });
+  $("profileLogout").addEventListener("click", () => {
+    authToken = "";
+    authUser = null;
+    localStorage.removeItem("subscript_token");
+    sessionStorage.removeItem("subscript_token");
+    $("profileMenu").hidden = true;
+    updateProfileUI();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && loginBackdrop.classList.contains("open")) closeLoginModal();
+  });
+}
+
+function runLevelTest() {
+  const questions = [
+    { text: "She ___ to work every day.", options: ["go", "goes", "going"], answer: "goes", level: "A2" },
+    { text: "I have lived here ___ 2020.", options: ["for", "since", "during"], answer: "since", level: "B1" },
+    { text: "If I had known, I ___ you.", options: ["would tell", "would have told", "will tell"], answer: "would have told", level: "B2" }
+  ];
+  let index = 0;
+  let score = 0;
+  const renderQuestion = () => {
+    const question = questions[index];
+    $("testQuestion").textContent = question.text;
+    $("testOptions").innerHTML = question.options.map((option) => `<button type="button">${option}</button>`).join("");
+    $("testOptions").querySelectorAll("button").forEach((button) => button.addEventListener("click", () => {
+      if (button.textContent === question.answer) score += 1;
+      index += 1;
+      if (index < questions.length) renderQuestion();
+      else saveLevel(score === 0 ? "A1" : questions[score - 1].level);
+    }));
+  };
+  renderQuestion();
+}
+
 async function openLibraryModal() {
   const modal = $("libraryModal");
   if (!modal) return;
 
   try {
-    const res = await fetch(CLIPS_CATALOG + "?t=" + Date.now());
-    if (res.ok) {
-      globalCatalog = await res.json();
-    }
+    await loadCatalog();
   } catch (e) {}
 
   renderLibraryGrid();
@@ -615,13 +891,13 @@ function renderLibraryGrid() {
 
   grid.innerHTML = globalCatalog
     .map((item) => {
-      const isCurrent = item.dataFile === currentDataFile;
+      const isCurrent = item.id === currentDataFile;
       const thumbUrl = `https://img.youtube.com/vi/${item.youtubeId}/mqdefault.jpg`;
       const dur = stamp(item.durationSeconds || 0);
       const level = item.level || "B1";
 
       return `
-        <button class="clip-card-item${isCurrent ? " is-current" : ""}" data-file="${item.dataFile}">
+        <button class="clip-card-item${isCurrent ? " is-current" : ""}" data-id="${item.id}">
           <div class="clip-thumb-wrap">
             <img class="clip-thumb-img" src="${thumbUrl}" alt="${item.title}" loading="lazy" />
             <span class="clip-level-badge level-${level.toLowerCase()}">${level}</span>
@@ -641,11 +917,11 @@ function renderLibraryGrid() {
 
   grid.querySelectorAll(".clip-card-item").forEach((card) => {
     card.addEventListener("click", () => {
-      const targetFile = card.dataset.file;
-      if (targetFile) {
+      const targetId = card.dataset.id;
+      if (targetId) {
         closeLibraryModal();
-        if (targetFile !== currentDataFile) {
-          switchClip(targetFile);
+        if (targetId !== currentDataFile) {
+          switchClip(targetId);
         }
       }
     });
@@ -674,15 +950,13 @@ async function switchClip(dataFile) {
 // ─── Data Loading ─────────────────────────────────────────────────────────────
 async function loadClip(dataFile) {
   currentDataFile = dataFile;
-  const res = await fetch(dataFile + "?t=" + Date.now());
-  if (!res.ok) throw new Error(`Klip verisi yüklenemedi: ${dataFile}`);
-  const data = await res.json();
+  const data = await apiRequest(`/api/clips/${encodeURIComponent(dataFile)}`);
 
   groups = data.groups;
   $("clipTitle").textContent = data.title;
   
   // Katalogdan seviyeyi bul ve üstteki eyebrow rozetini güncelle
-  const catalogItem = globalCatalog.find((c) => c.dataFile === dataFile);
+  const catalogItem = globalCatalog.find((c) => c.id === dataFile);
   const level = (catalogItem && catalogItem.level) || data.level || "B1";
   if ($("clipEyebrow")) {
     $("clipEyebrow").textContent = `FİLM KESİTİ · ${level}`;
@@ -700,6 +974,12 @@ async function loadClip(dataFile) {
 }
 
 async function init() {
+  setupAuth();
+  setupNavigation();
+  const authenticated = await ensureAuthenticated();
+  updateProfileUI();
+  if (authenticated) authBackdrop.classList.remove("open");
+  await loadCatalog();
   // Event listeners for Library
   if ($("libraryTriggerBtn")) $("libraryTriggerBtn").addEventListener("click", openLibraryModal);
   if ($("changeClipLink")) $("changeClipLink").addEventListener("click", openLibraryModal);
@@ -714,18 +994,12 @@ async function init() {
   let dataFile = params.get("data");
 
   if (!dataFile) {
-    const res = await fetch(CLIPS_CATALOG + "?t=" + Date.now());
-    if (!res.ok) {
-      document.body.innerHTML = "<p style='padding:2rem'>clips.json bulunamadı.</p>";
-      return;
-    }
-    const catalog = await res.json();
-    globalCatalog = catalog;
+    const catalog = globalCatalog;
     if (!catalog.length) {
       document.body.innerHTML = "<p style='padding:2rem'>Henüz hiç klip eklenmemiş.</p>";
       return;
     }
-    dataFile = catalog[0].dataFile;
+    dataFile = catalog[0].id;
   }
 
   await loadClip(dataFile);
