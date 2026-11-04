@@ -50,7 +50,7 @@ python transcribe.py --url "https://www.youtube.com/watch?v=VIDEO_ID" --title "F
 
 ### 3. Uygulamayı Başlatın
 
-Node.js API'si ve frontend'i birlikte başlatın (Node.js 18+):
+Node.js API'si ve frontend'i birlikte başlatın (Node.js 22.5+):
 
 ```powershell
 npm start
@@ -74,6 +74,12 @@ Admin klip ekleme endpoint'i yalnızca bu e-posta ile giriş yapan kullanıcıya
 POST /api/admin/clips
 ```
 
+### Auth ve yerel veri
+
+Kullanıcılar ve oturumlar yerel geliştirme ortamında `data/subscript.sqlite` içinde saklanır. İlk çalıştırmada eski `data/users.json` dosyası otomatik olarak SQLite'a taşınır. Bu veritabanı dosyası Git'e dahil edilmez.
+
+Bu SQLite katmanı tek sunuculu MVP içindir. Üretime çıkmadan önce PostgreSQL, gizli ortam değişkenleri, rate limiting, e-posta doğrulama ve şifre sıfırlama akışları eklenmelidir.
+
 Klip ekleme gövdesi `id`, `title`, `level`, `youtubeId` ve `dataFile` alanlarını içermelidir. Bu ilk backend sürümü kullanıcıları `data/users.json` dosyasında saklar; üretime geçerken PostgreSQL'e taşınacaktır.
 
 ---
@@ -86,7 +92,8 @@ liscript/
 ├── app.js                # Frontend etkileşim mantığı ve YouTube Player yönetimi
 ├── server.js             # Node.js API, auth ve admin klip endpoint'leri
 ├── package.json          # Node.js çalıştırma komutları
-├── data/users.json       # Yerel MVP kullanıcı verisi (git dışında)
+├── data/users.json       # Eski kullanıcı verisi / ilk geçiş kaynağı (git dışında)
+├── data/subscript.sqlite # Yerel MVP kullanıcı ve oturum verisi (git dışında)
 ├── batch_transcribe.py   # urls.txt üzerinden toplu video işleme scripti
 ├── clips.json            # Klip kataloğu ve seviye verileri
 ├── index.html            # Web arayüzü

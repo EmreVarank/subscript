@@ -589,6 +589,7 @@ let currentDataFile = "";
 
 let authToken = localStorage.getItem("subscript_token") || sessionStorage.getItem("subscript_token") || "";
 let authUser = null;
+let loginMode = "login";
 const authBackdrop = $("authBackdrop");
 const loginBackdrop = $("loginBackdrop");
 
@@ -661,8 +662,13 @@ function setupAuth() {
     const target = $(step);
     if (target) target.hidden = false;
   };
+  if (localStorage.getItem("subscript_onboarding_seen") === "1" || authToken) {
+    authBackdrop.classList.remove("open");
+  }
   showStep("welcomeStep");
   $("welcomeContinue").addEventListener("click", () => showStep("profileStep"));
+  $("onboardingLogin").addEventListener("click", openLoginModal);
+  $("profileBack").addEventListener("click", () => showStep("welcomeStep"));
   $("profileContinue").addEventListener("click", () => {
     const name = $("authName").value.trim();
     if (!name) {
@@ -670,10 +676,12 @@ function setupAuth() {
       return;
     }
     localStorage.setItem("subscript_name", name);
+    localStorage.setItem("subscript_onboarding_seen", "1");
     $("authBackdrop").classList.remove("open");
     showLevelPicker();
   });
   $("skipOnboarding").addEventListener("click", () => {
+    localStorage.setItem("subscript_onboarding_seen", "1");
     $("authBackdrop").classList.remove("open");
   });
   document.querySelectorAll("[data-level]").forEach((button) => button.addEventListener("click", () => saveLevel(button.dataset.level)));
@@ -712,6 +720,7 @@ function openLoginModal() {
   if (!loginBackdrop) return;
   $("profileMenu").hidden = true;
   $("loginForm").reset();
+  setLoginMode("login");
   setLoginError("loginEmailError", "");
   setLoginError("loginPasswordError", "");
   setLoginError("loginSubmitError", "");
@@ -720,6 +729,21 @@ function openLoginModal() {
   loginBackdrop.classList.add("open");
   loginBackdrop.setAttribute("aria-hidden", "false");
   window.setTimeout(() => $("loginEmail").focus(), 100);
+}
+
+function setLoginMode(mode) {
+  loginMode = mode;
+  const isRegister = mode === "register";
+  document.querySelectorAll(".login-name-field").forEach((element) => {
+    element.hidden = !isRegister;
+  });
+  $("loginTitle").textContent = isRegister ? "Kendi hesabını oluştur." : "Kaldığın yerden devam et.";
+  document.querySelector(".login-form-subtitle").textContent = isRegister
+    ? "İlerlemeni kaydetmek için bir dakikadan kısa sürede hesabını oluştur."
+    : "İlerlemeni ve favori kliplerini kaydetmek için giriş yap.";
+  $("loginSubmitLabel").textContent = isRegister ? "Hesap oluştur" : "Giriş yap";
+  $("loginAccountPrompt").textContent = isRegister ? "Zaten hesabın var mı?" : "Henüz hesabın yok mu?";
+  $("loginRegisterHint").textContent = isRegister ? "Giriş yap" : "Ücretsiz başla";
 }
 
 async function submitLogin(event) {
@@ -731,16 +755,18 @@ async function submitLogin(event) {
 
   const email = $("loginEmail").value.trim();
   const password = $("loginPassword").value;
+  const name = $("loginName").value.trim();
+  setLoginError("loginNameError", loginMode === "register" && !name ? "Adını yaz." : "");
   setLoginError("loginEmailError", !email ? "E-posta adresini yaz." : !email.includes("@") ? "Geçerli bir e-posta adresi yaz." : "");
-  setLoginError("loginPasswordError", !password ? "Şifreni yaz." : "");
+  setLoginError("loginPasswordError", !password ? "Şifreni yaz." : password.length < 8 ? "Şifren en az 8 karakter olmalı." : "");
   setLoginError("loginSubmitError", "");
-  if (!email || !email.includes("@") || !password) return;
+  if (!email || !email.includes("@") || !password || password.length < 8 || (loginMode === "register" && !name)) return;
 
   setLoginBusy(true);
   try {
-    const result = await apiRequest("/api/auth/login", {
+    const result = await apiRequest(loginMode === "register" ? "/api/auth/register" : "/api/auth/login", {
       method: "POST",
-      body: JSON.stringify({ email, password, remember: $("loginRemember").checked })
+      body: JSON.stringify({ name, email, password, remember: $("loginRemember").checked })
     });
     authToken = result.token;
     authUser = result.user;
@@ -777,6 +803,41 @@ function updateProfileUI() {
   $("menuProfileLevel").textContent = level ? `İngilizce · ${level}` : "İngilizce · Seviye seçilmedi";
   $("profileLogin").hidden = Boolean(authUser);
   $("profileLogout").hidden = !authUser;
+  if ($("profilePageAvatar")) $("profilePageAvatar").textContent = initial;
+  if ($("profilePageName")) $("profilePageName").textContent = name;
+  if ($("profilePageEmail")) $("profilePageEmail").textContent = authUser?.email || "Misafir olarak devam ediyorsun";
+  if ($("profilePageLevel")) $("profilePageLevel").textContent = level ? `İngilizce · ${level}` : "Seviye seçilmedi";
+  if ($("profileLevel")) $("profileLevel").textContent = level || "Seçilmedi";
+  if ($("profileLanguage")) $("profileLanguage").textContent = `${flags[language] || flags.en} İngilizce`;
+}
+
+function routeForSection(section) {
+  return section === "profile" ? "/profil" : "/ogren";
+}
+
+function sectionForPath(pathname) {
+  return pathname === "/profil" ? "profile" : "learn";
+}
+
+function showSection(section, updateUrl = true) {
+  const isProfile = section === "profile";
+  const isLearn = section === "learn";
+  document.querySelectorAll(".side-nav-item").forEach((navItem) => {
+    navItem.classList.toggle("active", navItem.dataset.section === section);
+  });
+  $("profileView").hidden = !isProfile;
+  document.querySelector(".lesson-head").hidden = !isLearn;
+  document.querySelector(".main-layout").hidden = !isLearn;
+  $("libraryTriggerBtn").hidden = !isLearn;
+  const headerTitle = document.querySelector(".header-context strong");
+  if (headerTitle) headerTitle.textContent = isProfile ? "Profil" : "Öğren";
+  if (isProfile) updateProfileUI();
+  if (updateUrl && window.location.pathname !== routeForSection(section)) {
+    const url = new URL(window.location);
+    url.pathname = routeForSection(section);
+    window.history.pushState({ section }, "", url);
+  }
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function setupNavigation() {
@@ -806,7 +867,8 @@ function setupNavigation() {
     $("toggleLoginPassword").classList.toggle("is-visible", !visible);
   });
   $("loginRegisterHint").addEventListener("click", () => {
-    setLoginError("loginSubmitError", "Kayıt olma akışı yakında aktif olacak. Şimdilik misafir olarak devam edebilirsin.");
+    setLoginMode(loginMode === "register" ? "login" : "register");
+    setLoginError("loginSubmitError", "");
   });
   $("forgotPasswordButton").addEventListener("click", () => {
     setLoginError("loginSubmitError", "Şifre yenileme akışı yakında aktif olacak.");
@@ -819,22 +881,33 @@ function setupNavigation() {
   document.addEventListener("click", (event) => {
     if (!event.target.closest(".header-profile-wrap")) $("profileMenu").hidden = true;
   });
-  document.querySelectorAll(".side-nav-item, [data-profile-action]").forEach((item) => {
+  document.querySelectorAll(".side-nav-item, [data-profile-action], .profile-action-button").forEach((item) => {
     item.addEventListener("click", () => {
       const section = item.dataset.section || item.dataset.profileAction;
-      document.querySelectorAll(".side-nav-item").forEach((navItem) => navItem.classList.toggle("active", navItem.dataset.section === section));
       $("profileMenu").hidden = true;
-      if (section === "learn") window.scrollTo({ top: 0, behavior: "smooth" });
-      if (section === "profile") updateProfileUI();
+      if (section === "learn" || section === "profile") showSection(section);
     });
   });
-  $("profileLogout").addEventListener("click", () => {
-    authToken = "";
-    authUser = null;
-    localStorage.removeItem("subscript_token");
-    sessionStorage.removeItem("subscript_token");
-    $("profileMenu").hidden = true;
-    updateProfileUI();
+  window.addEventListener("popstate", () => showSection(sectionForPath(window.location.pathname), false));
+  document.querySelectorAll("[data-section='settings']").forEach((item) => {
+    item.addEventListener("click", () => {
+      $("profileMenu").hidden = true;
+      setLoginError("loginSubmitError", "Ayarlar bölümü yakında aktif olacak.");
+    });
+  });
+  $("profileLogout").addEventListener("click", async () => {
+    try {
+      if (authToken) await apiRequest("/api/auth/session", { method: "DELETE" });
+    } catch (error) {
+      console.error("Oturum sunucudan silinemedi:", error);
+    } finally {
+      authToken = "";
+      authUser = null;
+      localStorage.removeItem("subscript_token");
+      sessionStorage.removeItem("subscript_token");
+      $("profileMenu").hidden = true;
+      updateProfileUI();
+    }
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && loginBackdrop.classList.contains("open")) closeLoginModal();
@@ -955,12 +1028,8 @@ async function loadClip(dataFile) {
   groups = data.groups;
   $("clipTitle").textContent = data.title;
   
-  // Katalogdan seviyeyi bul ve üstteki eyebrow rozetini güncelle
   const catalogItem = globalCatalog.find((c) => c.id === dataFile);
   const level = (catalogItem && catalogItem.level) || data.level || "B1";
-  if ($("clipEyebrow")) {
-    $("clipEyebrow").textContent = `FİLM KESİTİ · ${level}`;
-  }
 
   document.title = `loop. — ${data.title} (${level})`;
 
@@ -976,6 +1045,7 @@ async function loadClip(dataFile) {
 async function init() {
   setupAuth();
   setupNavigation();
+  showSection(sectionForPath(window.location.pathname));
   const authenticated = await ensureAuthenticated();
   updateProfileUI();
   if (authenticated) authBackdrop.classList.remove("open");
