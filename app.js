@@ -1,24 +1,26 @@
 // ─── Config ───────────────────────────────────────────────────────────────────
 const CLIPS_CATALOG = "/api/clips";
 
-// Sözlük eşleştirmeleri (Akıllı İpucu seviye 1 için)
-const DICTIONARY = {
-  happens: "olmak, meydana gelmek",
-  settle: "uzlaşmak, halletmek",
-  irish: "İrlandalılar",
-  bodies: "cesetler, bedenler",
-  would: "istemek (-ecekti)",
-  smart: "akıllı, zeki",
-  amount: "miktar, tutar",
-  relationship: "ilişki, bağ",
-  history: "geçmiş, tarih",
-  another: "bir diğeri, başka",
-  privy: "haberdar, gizli ortak",
-  unanimous: "oy birliğiyle",
-  guess: "tahmin etmek",
-  leads: "yol açmak, götürmek",
-  three: "üç"
-};
+// Sözlük eşleştirmeleri ve dinamik önbellek
+const wordMeaningCache = new Map();
+
+async function fetchMeaning(rawWord) {
+  const clean = String(rawWord || "").toLowerCase().replace(/[^a-z']/g, "").trim();
+  if (!clean) return "bağlamdan çıkarınız";
+  if (wordMeaningCache.has(clean)) return wordMeaningCache.get(clean);
+
+  try {
+    const res = await fetch(`/api/dictionary/${encodeURIComponent(clean)}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.meaning) {
+        wordMeaningCache.set(clean, data.meaning);
+        return data.meaning;
+      }
+    }
+  } catch {}
+  return "bağlamdan çıkarınız";
+}
 
 // ─── State ────────────────────────────────────────────────────────────────────
 let groups = [];
@@ -38,7 +40,11 @@ let isCurrentPartFirstTry = true;
 // ─── DOM helpers ──────────────────────────────────────────────────────────────
 const $ = (id) => document.getElementById(id);
 const normalize = (v) =>
-  v.toLowerCase().replace(/[^a-z0-9']/g, "").trim();
+  String(v || "")
+    .toLowerCase()
+    .replace(/[’‘`]/g, "'")
+    .replace(/[^a-z0-9']/g, "")
+    .trim();
 
 // ─── Time formatting ──────────────────────────────────────────────────────────
 function stamp(seconds) {
@@ -336,14 +342,15 @@ function giveHint() {
   if (wordGroups.length === 0) return;
 
   if (hintStage === 0) {
-    // 1. Kademe: Türkçe Anlam Balonunu aç
-    wordGroups.forEach((groupEl) => {
+    // 1. Kademe: Dinamik Türkçe Anlam Balonunu aç
+    wordGroups.forEach(async (groupEl) => {
       const rawWord = groupEl.dataset.word.toLowerCase();
-      const meaning = DICTIONARY[rawWord] || "bağlamdan çıkarınız";
       const bubble = groupEl.querySelector(".hint-meaning-bubble");
       if (bubble) {
-        bubble.textContent = meaning;
+        bubble.textContent = "…";
         bubble.style.display = "block";
+        const meaning = await fetchMeaning(rawWord);
+        bubble.textContent = meaning;
       }
     });
     hintStage = 1;
@@ -381,14 +388,17 @@ function checkAnswer() {
 
   let allFilled = true;
   let allCorrect = true;
+  const incompleteWords = [];
+  const wrongWords = [];
 
   wordGroups.forEach((groupEl) => {
     const tiles = [...groupEl.querySelectorAll(".tile-char-input")];
-    const userWord = tiles.map((t) => t.value.trim().toLowerCase()).join("");
-    const targetWord = tiles.map((t) => t.dataset.expected.toLowerCase()).join("");
+    const userWord = normalize(tiles.map((t) => t.value).join(""));
+    const targetWord = normalize(tiles.map((t) => t.dataset.expected).join(""));
 
     if (userWord.length < targetWord.length) {
       allFilled = false;
+      incompleteWords.push(groupEl.dataset.word);
     }
 
     const isMatch = userWord === targetWord;
@@ -400,12 +410,13 @@ function checkAnswer() {
     } else {
       groupEl.classList.add("is-wrong");
       allCorrect = false;
+      wrongWords.push(groupEl.dataset.word);
     }
   });
 
   if (!allFilled) {
     feedback.className = "feedback partial";
-    feedback.textContent = "Lütfen tüm harf kutularını doldurunuz.";
+    feedback.textContent = `Eksik kelime${incompleteWords.length > 1 ? "ler" : ""}: ${incompleteWords.join(", ")}.`;
     return;
   }
 
@@ -419,6 +430,20 @@ function checkAnswer() {
 
     feedback.className = "feedback success";
     feedback.innerHTML = `<span class="correct">Eksiksiz ve doğru!</span> Harika dinleme.`;
+
+    // İlerlemeyi sunucuya kaydet
+    if (authToken) {
+      apiRequest('/api/progress', {
+        method: 'POST',
+        body: JSON.stringify({
+          clipId: currentDataFile,
+          groupIndex: current,
+          completed: true,
+          firstTry: isCurrentPartFirstTry,
+          attempts: hintStage > 0 ? hintStage + 1 : 1
+        })
+      }).catch(() => {});
+    }
 
     setTimeout(() => {
       if (current < groups.length - 1) {
@@ -436,7 +461,7 @@ function checkAnswer() {
     isCurrentPartFirstTry = false;
     updateStreakUI();
     feedback.className = "feedback partial";
-    feedback.textContent = "Bazı harfler uyuşmadı. Tekrar dinleyip düzeltiniz.";
+    feedback.textContent = `Kontrol edilemeyen kelime${wrongWords.length > 1 ? "ler" : ""}: ${wrongWords.join(", ")}.`;
   }
 }
 
@@ -788,21 +813,32 @@ async function submitLogin(event) {
   }
 }
 
+async function loadUserStats() {
+  if (!authToken) return;
+  try {
+    const stats = await apiRequest('/api/stats');
+    if ($('profileMinutes')) $('profileMinutes').textContent = Math.round(stats.totalMinutes || 0);
+    if ($('profileAccuracy')) $('profileAccuracy').textContent = stats.accuracy ? `%${Math.round(stats.accuracy)}` : '—';
+    if ($('profileStreak')) $('profileStreak').textContent = stats.currentStreak || 0;
+    if ($('profilePoints')) $('profilePoints').textContent = stats.totalPoints || 0;
+    if ($('profileCompletedCount')) $('profileCompletedCount').textContent = stats.totalCompleted || 0;
+  } catch {}
+}
+
 function updateProfileUI() {
   const storedName = localStorage.getItem("subscript_name");
   const name = authUser?.name || storedName || "Misafir";
   const level = authUser?.level || localStorage.getItem("subscript_level");
   const language = localStorage.getItem("subscript_language") || "en";
   const flags = { en: "🇬🇧", de: "🇩🇪", fr: "🇫🇷", es: "🇪🇸" };
-  const initial = name.trim().charAt(0).toUpperCase() || "S";
-  $("headerAvatar").textContent = initial;
-  $("menuAvatar").textContent = initial;
+  const initial = getInitials(name);
+  applyAvatarStyle(initial);
   $("headerProfileName").textContent = name;
   $("menuProfileName").textContent = name;
-  $("headerLanguageFlag").textContent = flags[language] || flags.en;
   $("menuProfileLevel").textContent = level ? `İngilizce · ${level}` : "İngilizce · Seviye seçilmedi";
   $("profileLogin").hidden = Boolean(authUser);
   $("profileLogout").hidden = !authUser;
+  if ($("adminNavItem")) $("adminNavItem").hidden = !authUser?.isAdmin;
   if ($("profilePageAvatar")) $("profilePageAvatar").textContent = initial;
   if ($("profilePageName")) $("profilePageName").textContent = name;
   if ($("profilePageEmail")) $("profilePageEmail").textContent = authUser?.email || "Misafir olarak devam ediyorsun";
@@ -811,33 +847,116 @@ function updateProfileUI() {
   if ($("profileLanguage")) $("profileLanguage").textContent = `${flags[language] || flags.en} İngilizce`;
 }
 
+function getInitials(name) {
+  const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "S";
+  if (parts.length === 1) return Array.from(parts[0]).slice(0, 2).join("").toUpperCase();
+  return `${Array.from(parts[0])[0] || ""}${Array.from(parts[parts.length - 1])[0] || ""}`.toUpperCase();
+}
+
+function applyAvatarStyle(initials) {
+  const color = authUser?.avatarColor || localStorage.getItem("subscript_avatar_color") || "violet";
+  document.querySelectorAll(".avatar").forEach((avatar) => {
+    avatar.textContent = initials;
+    avatar.classList.remove("avatar-color-violet", "avatar-color-ocean", "avatar-color-sunset", "avatar-color-mint", "avatar-color-rose", "avatar-color-slate");
+    avatar.classList.add(`avatar-color-${color}`);
+  });
+}
+
 function routeForSection(section) {
-  return section === "profile" ? "/profil" : "/ogren";
+  if (section === "profile") return "/profil";
+  if (section === "admin") return "/admin";
+  return "/ogren";
 }
 
 function sectionForPath(pathname) {
-  return pathname === "/profil" ? "profile" : "learn";
+  if (pathname === "/profil") return "profile";
+  if (pathname === "/admin") return "admin";
+  return "learn";
 }
 
 function showSection(section, updateUrl = true) {
+  if (section === "admin" && !authUser?.isAdmin) {
+    section = "learn";
+  }
   const isProfile = section === "profile";
   const isLearn = section === "learn";
+  const isAdmin = section === "admin";
   document.querySelectorAll(".side-nav-item").forEach((navItem) => {
     navItem.classList.toggle("active", navItem.dataset.section === section);
   });
   $("profileView").hidden = !isProfile;
+  $("adminView").hidden = !isAdmin;
   document.querySelector(".lesson-head").hidden = !isLearn;
   document.querySelector(".main-layout").hidden = !isLearn;
   $("libraryTriggerBtn").hidden = !isLearn;
   const headerTitle = document.querySelector(".header-context strong");
-  if (headerTitle) headerTitle.textContent = isProfile ? "Profil" : "Öğren";
-  if (isProfile) updateProfileUI();
+  if (headerTitle) headerTitle.textContent = isProfile ? "Profil" : isAdmin ? "Admin" : "Öğren";
+  if (isProfile) { updateProfileUI(); loadUserStats(); }
+  if (isAdmin) loadAdminView();
+  if (isLearn) ensureLearnView();
   if (updateUrl && window.location.pathname !== routeForSection(section)) {
     const url = new URL(window.location);
     url.pathname = routeForSection(section);
     window.history.pushState({ section }, "", url);
   }
   window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+let adminViewLoaded = false;
+let adminViewLoading = null;
+let learnViewLoaded = false;
+let learnViewLoading = null;
+
+async function loadAdminView() {
+  if (adminViewLoaded || adminViewLoading) return adminViewLoading;
+  adminViewLoading = fetch("/admin.html")
+    .then((response) => {
+      if (!response.ok) throw new Error("Admin paneli yüklenemedi.");
+      return response.text();
+    })
+    .then(async (html) => {
+      const documentFragment = new DOMParser().parseFromString(html, "text/html");
+      const content = documentFragment.querySelector(".admin-content");
+      const script = Array.from(documentFragment.querySelectorAll("script"))
+        .find((candidate) => candidate.textContent.includes("initAdminPanel"));
+      if (!content || !script) throw new Error("Admin paneli yapısı eksik.");
+      $("adminView").innerHTML = content.innerHTML;
+      const adminScript = document.createElement("script");
+      adminScript.textContent = script.textContent;
+      $("adminView").appendChild(adminScript);
+      if (typeof window.initAdminPanel !== "function") {
+        throw new Error("Admin paneli başlatılamadı.");
+      }
+      await window.initAdminPanel();
+      adminViewLoaded = true;
+    })
+    .catch((error) => {
+      $("adminView").innerHTML = `<div class="profile-section-card"><p class="feedback">${error.message}</p></div>`;
+      throw error;
+    })
+    .finally(() => {
+      adminViewLoading = null;
+    });
+  return adminViewLoading;
+}
+
+async function ensureLearnView() {
+  if (learnViewLoaded || learnViewLoading) return learnViewLoading;
+  learnViewLoading = (async () => {
+    await loadCatalog();
+    const params = new URLSearchParams(window.location.search);
+    const dataFile = params.get("data") || globalCatalog[0]?.id;
+    if (!dataFile) {
+      document.body.innerHTML = "<p style='padding:2rem'>Henüz hiç klip eklenmemiş.</p>";
+      return;
+    }
+    await loadClip(dataFile);
+    learnViewLoaded = true;
+  })().finally(() => {
+    learnViewLoading = null;
+  });
+  return learnViewLoading;
 }
 
 function setupNavigation() {
@@ -870,29 +989,303 @@ function setupNavigation() {
     setLoginMode(loginMode === "register" ? "login" : "register");
     setLoginError("loginSubmitError", "");
   });
-  $("forgotPasswordButton").addEventListener("click", () => {
-    setLoginError("loginSubmitError", "Şifre yenileme akışı yakında aktif olacak.");
+  $("forgotPasswordButton").addEventListener("click", async () => {
+    const email = $("loginEmail").value.trim();
+    if (!email || !email.includes("@")) {
+      setLoginError("loginEmailError", "Sıfırlama linki için geçerli e-postanızı yazınız.");
+      return;
+    }
+    try {
+      setLoginBusy(true);
+      const res = await apiRequest("/api/auth/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({ email })
+      });
+      setLoginError("loginSubmitError", res.message || "Sıfırlama bağlantısı gönderildi.");
+    } catch (err) {
+      setLoginError("loginSubmitError", err.message || "İşlem başarısız.");
+    } finally {
+      setLoginBusy(false);
+    }
   });
-  ["googleLoginButton", "appleLoginButton"].forEach((id) => {
-    $(id).addEventListener("click", () => {
-      setLoginError("loginSubmitError", "Sosyal medya ile giriş yakında aktif olacak.");
-    });
-  });
+
+  const handleGoogleLogin = async () => {
+    try {
+      setLoginBusy(true);
+      setLoginError("loginSubmitError", "");
+
+      // 1. Google Client ID yapılandırmasını kontrol et
+      let googleClientId = "";
+      try {
+        const cfg = await apiRequest("/api/config/auth");
+        googleClientId = cfg?.googleClientId || "";
+      } catch {}
+
+      // 2. Client ID tanımlıysa resmi Google Identity Services popup'ını tetikle
+      if (googleClientId && window.google?.accounts?.id) {
+        google.accounts.id.initialize({
+          client_id: googleClientId,
+          callback: async (response) => {
+            try {
+              setLoginBusy(true);
+              const result = await apiRequest("/api/auth/google", {
+                method: "POST",
+                body: JSON.stringify({ credential: response.credential })
+              });
+              authToken = result.token;
+              authUser = result.user;
+              localStorage.setItem("subscript_token", authToken);
+              if (authUser.name) localStorage.setItem("subscript_name", authUser.name);
+              closeLoginModal();
+              updateProfileUI();
+              await loadCatalog();
+            } catch (err) {
+              setLoginError("loginSubmitError", err.message || "Google girişi doğrulanamadı.");
+            } finally {
+              setLoginBusy(false);
+            }
+          }
+        });
+        google.accounts.id.prompt();
+        setLoginBusy(false);
+        return;
+      }
+
+      // 3. Client ID henüz girilmemişse kullanıcıyı şeffaf bilgilendir
+      const userChoice = confirm(
+        "Google Giriş Entegrasyonu:\n\n" +
+        "Gerçek Google hesap seçme ekranı (accounts.google.com) için .env dosyasında GOOGLE_CLIENT_ID tanımlanmalıdır.\n\n" +
+        "Şimdi test hesabıyla giriş yapmak ister misiniz?"
+      );
+
+      if (userChoice) {
+        const result = await apiRequest("/api/auth/oauth", {
+          method: "POST",
+          body: JSON.stringify({ provider: "google", name: "Google Kullanıcısı" })
+        });
+        authToken = result.token;
+        authUser = result.user;
+        localStorage.setItem("subscript_token", authToken);
+        if (authUser.name) localStorage.setItem("subscript_name", authUser.name);
+        closeLoginModal();
+        updateProfileUI();
+        await loadCatalog();
+      }
+    } catch (err) {
+      setLoginError("loginSubmitError", err.message || "Giriş işlemi tamamlanamadı.");
+    } finally {
+      setLoginBusy(false);
+    }
+  };
+
+  const handleAppleLogin = async () => {
+    try {
+      setLoginBusy(true);
+      const userChoice = confirm(
+        "Apple ile Giriş Entegrasyonu:\n\n" +
+        "Gerçek Apple ID ile oturum açmak için Apple Developer Program hesabı ve Service ID gereklidir.\n\n" +
+        "Şimdi Apple test hesabıyla giriş yapmak ister misiniz?"
+      );
+      if (userChoice) {
+        const result = await apiRequest("/api/auth/oauth", {
+          method: "POST",
+          body: JSON.stringify({ provider: "apple", name: "Apple Kullanıcısı" })
+        });
+        authToken = result.token;
+        authUser = result.user;
+        localStorage.setItem("subscript_token", authToken);
+        if (authUser.name) localStorage.setItem("subscript_name", authUser.name);
+        closeLoginModal();
+        updateProfileUI();
+        await loadCatalog();
+      }
+    } catch (err) {
+      setLoginError("loginSubmitError", err.message || "Apple girişi başarısız.");
+    } finally {
+      setLoginBusy(false);
+    }
+  };
+
+  $("googleLoginButton").addEventListener("click", handleGoogleLogin);
+  $("appleLoginButton").addEventListener("click", handleAppleLogin);
   document.addEventListener("click", (event) => {
     if (!event.target.closest(".header-profile-wrap")) $("profileMenu").hidden = true;
   });
   document.querySelectorAll(".side-nav-item, [data-profile-action], .profile-action-button").forEach((item) => {
-    item.addEventListener("click", () => {
+    item.addEventListener("click", (event) => {
+      if (item.tagName === "A") {
+        event.preventDefault();
+      }
       const section = item.dataset.section || item.dataset.profileAction;
       $("profileMenu").hidden = true;
-      if (section === "learn" || section === "profile") showSection(section);
+      if (section === "learn" || section === "profile" || section === "admin") {
+        showSection(section);
+      }
     });
   });
   window.addEventListener("popstate", () => showSection(sectionForPath(window.location.pathname), false));
+  // ── Ayarlar Modalı Yönetimi ───────────────────────────────────────────────
+  const settingsBackdrop = $("settingsBackdrop");
+
+  const openSettingsModal = () => {
+    if (!authToken) {
+      openLoginModal();
+      return;
+    }
+    $("profileMenu").hidden = true;
+    $("settingsNameInput").value = authUser?.name || localStorage.getItem("subscript_name") || "";
+    document.querySelectorAll("[data-avatar-color]").forEach((button) => {
+      button.classList.toggle("selected", button.dataset.avatarColor === (authUser?.avatarColor || "violet"));
+    });
+    $("settingsCurrentPass").value = "";
+    $("settingsNewPass").value = "";
+    $("settingsPassMsg").textContent = "";
+
+    const plan = (authUser?.plan || "free").toUpperCase();
+    const badge = $("settingsPlanBadge");
+    if (badge) {
+      badge.textContent = plan;
+      badge.style.background = plan === "PRO" ? "#10b981" : "#6366f1";
+    }
+    const upBtn = $("upgradePlanBtn");
+    if (upBtn) {
+      upBtn.textContent = plan === "PRO" ? "Aboneliğiniz Aktif (Pro)" : "Pro Plana Yükselt (Stripe)";
+      upBtn.disabled = plan === "PRO";
+    }
+
+    settingsBackdrop.classList.add("open");
+    settingsBackdrop.setAttribute("aria-hidden", "false");
+  };
+
+  const closeSettingsModal = () => {
+    if (!settingsBackdrop) return;
+    settingsBackdrop.classList.remove("open");
+    settingsBackdrop.setAttribute("aria-hidden", "true");
+  };
+
+  if ($("closeSettingsButton")) $("closeSettingsButton").addEventListener("click", closeSettingsModal);
+  if (settingsBackdrop) {
+    settingsBackdrop.addEventListener("click", (e) => {
+      if (e.target === settingsBackdrop) closeSettingsModal();
+    });
+  }
+
+  // İsim güncelleme formu
+  if ($("updateNameForm")) {
+    $("updateNameForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const newName = $("settingsNameInput").value.trim();
+      if (!newName) return;
+      try {
+        const res = await apiRequest("/api/profile/update", {
+          method: "POST",
+          body: JSON.stringify({
+            name: newName,
+            avatarColor: authUser?.avatarColor || localStorage.getItem("subscript_avatar_color") || "violet"
+          })
+        });
+        authUser = res.user;
+        localStorage.setItem("subscript_name", newName);
+        localStorage.setItem("subscript_avatar_color", authUser.avatarColor);
+        updateProfileUI();
+        alert("Adınız başarıyla güncellendi.");
+      } catch (err) {
+        alert("Hata: " + err.message);
+      }
+    });
+  }
+
+  document.querySelectorAll("[data-avatar-color]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      if (!authUser) return;
+      try {
+        const res = await apiRequest("/api/profile/update", {
+          method: "POST",
+          body: JSON.stringify({
+            name: authUser.name,
+            avatarColor: button.dataset.avatarColor
+          })
+        });
+        authUser = res.user;
+        localStorage.setItem("subscript_avatar_color", authUser.avatarColor);
+        document.querySelectorAll("[data-avatar-color]").forEach((item) => {
+          item.classList.toggle("selected", item === button);
+        });
+        updateProfileUI();
+      } catch (error) {
+        alert("Avatar rengi güncellenemedi: " + error.message);
+      }
+    });
+  });
+
+  // Şifre değiştirme formu
+  if ($("updatePasswordForm")) {
+    $("updatePasswordForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const currentPassword = $("settingsCurrentPass").value;
+      const newPassword = $("settingsNewPass").value;
+      const msgEl = $("settingsPassMsg");
+
+      if (newPassword.length < 8) {
+        msgEl.textContent = "Yeni şifre en az 8 karakter olmalı.";
+        return;
+      }
+      try {
+        msgEl.style.color = "var(--muted)";
+        msgEl.textContent = "Güncelleniyor…";
+        const res = await apiRequest("/api/profile/password", {
+          method: "POST",
+          body: JSON.stringify({ currentPassword, newPassword })
+        });
+        msgEl.style.color = "#10b981";
+        msgEl.textContent = res.message || "Şifreniz değiştirildi.";
+        $("settingsCurrentPass").value = "";
+        $("settingsNewPass").value = "";
+      } catch (err) {
+        msgEl.style.color = "#ef4444";
+        msgEl.textContent = err.message;
+      }
+    });
+  }
+
+  // Stripe Pro Yükseltme
+  if ($("upgradePlanBtn")) {
+    $("upgradePlanBtn").addEventListener("click", async () => {
+      try {
+        const res = await apiRequest("/api/subscription/create-checkout-session", {
+          method: "POST",
+          body: JSON.stringify({ plan: "pro_monthly" })
+        });
+
+        if (res.url) {
+          window.location.href = res.url;
+        } else {
+          // Stripe anahtarı henüz .env'de yoksa geliştirici modu
+          const choice = confirm(
+            "Stripe Ödeme Entegrasyonu:\n\n" +
+            "Gerçek kredi kartı tahsilatı için .env dosyasında STRIPE_SECRET_KEY tanımlanmalıdır.\n\n" +
+            "Şimdi hesabınızı doğrudan PRO plana yükseltmek istiyor musunuz?"
+          );
+          if (choice) {
+            const upRes = await apiRequest("/api/subscription/upgrade", {
+              method: "POST",
+              body: JSON.stringify({ plan: "pro" })
+            });
+            authUser.plan = "pro";
+            openSettingsModal();
+            updateProfileUI();
+            alert("Tebrikler! Hesabınız Pro seviyesine yükseltildi.");
+          }
+        }
+      } catch (err) {
+        alert("Abonelik hatası: " + err.message);
+      }
+    });
+  }
+
   document.querySelectorAll("[data-section='settings']").forEach((item) => {
     item.addEventListener("click", () => {
-      $("profileMenu").hidden = true;
-      setLoginError("loginSubmitError", "Ayarlar bölümü yakında aktif olacak.");
+      openSettingsModal();
     });
   });
   $("profileLogout").addEventListener("click", async () => {
@@ -1045,11 +1438,28 @@ async function loadClip(dataFile) {
 async function init() {
   setupAuth();
   setupNavigation();
-  showSection(sectionForPath(window.location.pathname));
+  const requestedSection = sectionForPath(window.location.pathname);
+  showSection(requestedSection, false);
   const authenticated = await ensureAuthenticated();
   updateProfileUI();
   if (authenticated) authBackdrop.classList.remove("open");
-  await loadCatalog();
+  showSection(authenticated && requestedSection === "admin" ? "admin" : requestedSection === "admin" ? "learn" : requestedSection, false);
+
+  // E-posta doğrulama banner'ı
+  if (authenticated && authUser && !authUser.emailVerified) {
+    const banner = document.createElement('div');
+    banner.id = 'verifyBanner';
+    banner.style.cssText = 'background:#f97316;color:#fff;text-align:center;padding:8px 16px;font-size:13px;font-weight:600;cursor:default;';
+    banner.textContent = '📧 E-posta adresinizi doğrulamanız gerekmektedir. Gelen kutunuzu kontrol edin.';
+    document.body.prepend(banner);
+  }
+  if (requestedSection === "admin") {
+    if (authUser?.isAdmin) {
+      await loadAdminView();
+    }
+    return;
+  }
+  await ensureLearnView();
   // Event listeners for Library
   if ($("libraryTriggerBtn")) $("libraryTriggerBtn").addEventListener("click", openLibraryModal);
   if ($("changeClipLink")) $("changeClipLink").addEventListener("click", openLibraryModal);
@@ -1060,19 +1470,6 @@ async function init() {
     });
   }
 
-  const params = new URLSearchParams(window.location.search);
-  let dataFile = params.get("data");
-
-  if (!dataFile) {
-    const catalog = globalCatalog;
-    if (!catalog.length) {
-      document.body.innerHTML = "<p style='padding:2rem'>Henüz hiç klip eklenmemiş.</p>";
-      return;
-    }
-    dataFile = catalog[0].id;
-  }
-
-  await loadClip(dataFile);
 }
 
 // ─── YouTube IFrame API ───────────────────────────────────────────────────────

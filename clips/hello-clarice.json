@@ -1,0 +1,1558 @@
+{
+  "url": "https://www.youtube.com/watch?v=afHQE1LlAfo",
+  "youtubeId": "afHQE1LlAfo",
+  "title": "Hello Clarice",
+  "language": "en",
+  "durationSeconds": 293.41,
+  "sentencesPerGroup": 2,
+  "groups": [
+    {
+      "start": 0.05,
+      "end": 3.21,
+      "sentences": [
+        {
+          "start": 0.05,
+          "end": 1.75,
+          "text": "I can't keep doing this forever.",
+          "blankIndexes": [
+            3,
+            5
+          ]
+        },
+        {
+          "start": 2.07,
+          "end": 3.21,
+          "text": "It's in 20 seconds.",
+          "blankIndexes": [
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "start": 5.54,
+      "end": 8.27,
+      "sentences": [
+        {
+          "start": 5.54,
+          "end": 6.1,
+          "text": "Call it.",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 7.41,
+          "end": 8.27,
+          "text": "Would you like to try next?",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 8.81,
+      "end": 11.19,
+      "sentences": [
+        {
+          "start": 8.81,
+          "end": 10.15,
+          "text": "Absolutely, I would not.",
+          "blankIndexes": [
+            0,
+            2
+          ]
+        },
+        {
+          "start": 10.65,
+          "end": 11.19,
+          "text": "How about you?",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 11.53,
+      "end": 14.39,
+      "sentences": [
+        {
+          "start": 11.53,
+          "end": 12.27,
+          "text": "Try to resuscitate.",
+          "blankIndexes": [
+            2
+          ]
+        },
+        {
+          "start": 12.57,
+          "end": 14.39,
+          "text": "I will not put my mouth on that dummy.",
+          "blankIndexes": [
+            5,
+            8
+          ]
+        }
+      ]
+    },
+    {
+      "start": 14.89,
+      "end": 21.13,
+      "sentences": [
+        {
+          "start": 14.89,
+          "end": 16.75,
+          "text": "Who knows who else's mouth has been on it?",
+          "blankIndexes": [
+            1,
+            3,
+            4
+          ]
+        },
+        {
+          "start": 17.07,
+          "end": 21.13,
+          "text": "Angel, if someone were really dying, you'd have to touch them with all their germs.",
+          "blankIndexes": [
+            0,
+            14
+          ]
+        }
+      ]
+    },
+    {
+      "start": 21.63,
+      "end": 23.95,
+      "sentences": [
+        {
+          "start": 21.63,
+          "end": 22.05,
+          "text": "Of course.",
+          "blankIndexes": [
+            1
+          ]
+        },
+        {
+          "start": 22.49,
+          "end": 23.95,
+          "text": "You know who I really think should go?",
+          "blankIndexes": [
+            4,
+            5,
+            6
+          ]
+        }
+      ]
+    },
+    {
+      "start": 25.51,
+      "end": 27.61,
+      "sentences": [
+        {
+          "start": 25.51,
+          "end": 25.75,
+          "text": "Stanley.",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 26.65,
+          "end": 27.61,
+          "text": "Oh, I don't know.",
+          "blankIndexes": [
+            2,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "start": 28.05,
+      "end": 30.53,
+      "sentences": [
+        {
+          "start": 28.05,
+          "end": 29.39,
+          "text": "It's not a good idea, Michael.",
+          "blankIndexes": [
+            5
+          ]
+        },
+        {
+          "start": 29.59,
+          "end": 30.53,
+          "text": "He needs to rest.",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 30.91,
+      "end": 36.91,
+      "sentences": [
+        {
+          "start": 30.91,
+          "end": 32.17,
+          "text": "No rest for the sick.",
+          "blankIndexes": [
+            1,
+            4
+          ]
+        },
+        {
+          "start": 34.71,
+          "end": 36.91,
+          "text": "we are not always going to be there",
+          "blankIndexes": [
+            3,
+            4,
+            7
+          ]
+        }
+      ]
+    },
+    {
+      "start": 38.44,
+      "end": 66.4,
+      "sentences": [
+        {
+          "start": 38.44,
+          "end": 40.3,
+          "text": "to coddle your heart back",
+          "blankIndexes": [
+            1,
+            3
+          ]
+        },
+        {
+          "start": 40.96,
+          "end": 66.4,
+          "text": "when it disappears to be working what are you going to do if you're by yourself and your heart stops I would die and you're okay with that I'm okay with the logic of it no no no come on get up let's do this yes I had a heart attack I would quit but I'm too old to find another job and I don't have enough save to retire I feel like I'm working in my own casket Come on, Stanley, you're losing you.",
+          "blankIndexes": [
+            2,
+            49,
+            83
+          ]
+        }
+      ]
+    },
+    {
+      "start": 66.64,
+      "end": 68.0,
+      "sentences": [
+        {
+          "start": 66.64,
+          "end": 67.2,
+          "text": "You're losing you.",
+          "blankIndexes": [
+            0,
+            1
+          ]
+        },
+        {
+          "start": 67.64,
+          "end": 68.0,
+          "text": "Do it.",
+          "blankIndexes": [
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 69.08,
+      "end": 70.76,
+      "sentences": [
+        {
+          "start": 69.08,
+          "end": 70.42,
+          "text": "This is you are talking about.",
+          "blankIndexes": [
+            4,
+            5
+          ]
+        },
+        {
+          "start": 70.72,
+          "end": 70.76,
+          "text": "Michael.",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 71.14,
+      "end": 72.3,
+      "sentences": [
+        {
+          "start": 71.14,
+          "end": 71.68,
+          "text": "Okay, okay.",
+          "blankIndexes": [
+            0,
+            1
+          ]
+        },
+        {
+          "start": 71.9,
+          "end": 72.3,
+          "text": "I'll show them.",
+          "blankIndexes": [
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 73.06,
+      "end": 76.31,
+      "sentences": [
+        {
+          "start": 73.06,
+          "end": 73.58,
+          "text": "Here we go.",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 75.91,
+          "end": 76.31,
+          "text": "All right.",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 76.49,
+      "end": 82.65,
+      "sentences": [
+        {
+          "start": 76.49,
+          "end": 78.99,
+          "text": "So, assessing the situation, are they breathing?",
+          "blankIndexes": [
+            1,
+            3,
+            6
+          ]
+        },
+        {
+          "start": 79.87,
+          "end": 82.65,
+          "text": "No, Rose, they are not breathing.",
+          "blankIndexes": [
+            5
+          ]
+        }
+      ]
+    },
+    {
+      "start": 83.05,
+      "end": 86.75,
+      "sentences": [
+        {
+          "start": 83.05,
+          "end": 85.07,
+          "text": "And they have no arms or legs.",
+          "blankIndexes": [
+            2,
+            4,
+            6
+          ]
+        },
+        {
+          "start": 85.67,
+          "end": 86.75,
+          "text": "No, that's not part of it.",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 86.91,
+      "end": 88.41,
+      "sentences": [
+        {
+          "start": 86.91,
+          "end": 87.57,
+          "text": "Where are they?",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 88.03,
+          "end": 88.41,
+          "text": "You know what?",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 88.69,
+      "end": 96.85,
+      "sentences": [
+        {
+          "start": 88.69,
+          "end": 93.87,
+          "text": "If we come across somebody with no arms or legs, do we bother resuscitating them?",
+          "blankIndexes": [
+            12
+          ]
+        },
+        {
+          "start": 93.87,
+          "end": 96.85,
+          "text": "I mean, what kind of quality of life do we have there?",
+          "blankIndexes": [
+            5,
+            11
+          ]
+        }
+      ]
+    },
+    {
+      "start": 96.91,
+      "end": 99.51,
+      "sentences": [
+        {
+          "start": 96.91,
+          "end": 98.47,
+          "text": "I would want to live with no legs.",
+          "blankIndexes": [
+            1
+          ]
+        },
+        {
+          "start": 98.79,
+          "end": 99.51,
+          "text": "How about no arms?",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 100.31,
+      "end": 103.95,
+      "sentences": [
+        {
+          "start": 100.31,
+          "end": 103.07,
+          "text": "No arms or legs is basically how you exist right now, Kevin.",
+          "blankIndexes": [
+            9
+          ]
+        },
+        {
+          "start": 103.25,
+          "end": 103.95,
+          "text": "You don't do anything.",
+          "blankIndexes": [
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "start": 104.51,
+      "end": 108.45,
+      "sentences": [
+        {
+          "start": 104.51,
+          "end": 105.45,
+          "text": "Here's another question.",
+          "blankIndexes": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "start": 106.17,
+          "end": 108.45,
+          "text": "Was he born this way with no arms or legs?",
+          "blankIndexes": [
+            7
+          ]
+        }
+      ]
+    },
+    {
+      "start": 108.67,
+      "end": 115.11,
+      "sentences": [
+        {
+          "start": 108.67,
+          "end": 110.01,
+          "text": "Or were they blown off?",
+          "blankIndexes": [
+            3
+          ]
+        },
+        {
+          "start": 110.21,
+          "end": 115.11,
+          "text": "If that's the case, should we use a tourniquet to tie off the bloody stumps?",
+          "blankIndexes": [
+            8
+          ]
+        }
+      ]
+    },
+    {
+      "start": 115.35,
+      "end": 120.89,
+      "sentences": [
+        {
+          "start": 115.35,
+          "end": 119.63,
+          "text": "Okay, we're not going to be covering turniquets today just because that rarely happens in an office place?",
+          "blankIndexes": [
+            3,
+            10,
+            17
+          ]
+        },
+        {
+          "start": 119.75,
+          "end": 120.89,
+          "text": "Not covering turniquets?",
+          "blankIndexes": [
+            1,
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "start": 120.99,
+      "end": 123.07,
+      "sentences": [
+        {
+          "start": 120.99,
+          "end": 122.23,
+          "text": "That should be the first thing we cover.",
+          "blankIndexes": [
+            5
+          ]
+        },
+        {
+          "start": 122.43,
+          "end": 123.07,
+          "text": "I agree.",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 123.87,
+      "end": 126.39,
+      "sentences": [
+        {
+          "start": 123.87,
+          "end": 125.41,
+          "text": "go oozing out of the stumps.",
+          "blankIndexes": [
+            1,
+            5
+          ]
+        },
+        {
+          "start": 125.55,
+          "end": 126.39,
+          "text": "I think Dwight is right.",
+          "blankIndexes": [
+            1,
+            2,
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "start": 126.65,
+      "end": 131.53,
+      "sentences": [
+        {
+          "start": 126.65,
+          "end": 127.79,
+          "text": "Okay, this is the scenario.",
+          "blankIndexes": [
+            4
+          ]
+        },
+        {
+          "start": 128.03,
+          "end": 131.53,
+          "text": "This is a battlefield, and there are bodies all over the place.",
+          "blankIndexes": [
+            7
+          ]
+        }
+      ]
+    },
+    {
+      "start": 131.73,
+      "end": 139.11,
+      "sentences": [
+        {
+          "start": 131.73,
+          "end": 135.67,
+          "text": "And some have had heart attacks, and other people are just resting.",
+          "blankIndexes": [
+            7
+          ]
+        },
+        {
+          "start": 135.85,
+          "end": 139.11,
+          "text": "So I think, in that case, to go up to someone and say, are you OK?",
+          "blankIndexes": [
+            2,
+            10
+          ]
+        }
+      ]
+    },
+    {
+      "start": 139.35,
+      "end": 143.11,
+      "sentences": [
+        {
+          "start": 139.35,
+          "end": 140.07,
+          "text": "That makes sense to me.",
+          "blankIndexes": [
+            1,
+            2
+          ]
+        },
+        {
+          "start": 140.95,
+          "end": 143.11,
+          "text": "OK, for the sake of argument, we are now at a battlefield.",
+          "blankIndexes": [
+            5,
+            11
+          ]
+        }
+      ]
+    },
+    {
+      "start": 143.83,
+      "end": 152.15,
+      "sentences": [
+        {
+          "start": 143.83,
+          "end": 147.95,
+          "text": "And I think it's OK to ask somebody if that's OK, even in an office.",
+          "blankIndexes": [
+            9
+          ]
+        },
+        {
+          "start": 148.61,
+          "end": 152.15,
+          "text": "And now, who would like to come up and care for the job?",
+          "blankIndexes": [
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "start": 152.15,
+      "end": 152.89,
+      "sentences": [
+        {
+          "start": 152.15,
+          "end": 152.35,
+          "text": "You know what?",
+          "blankIndexes": [
+            1
+          ]
+        },
+        {
+          "start": 152.47,
+          "end": 152.89,
+          "text": "I'm already here.",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 153.01,
+      "end": 153.59,
+      "sentences": [
+        {
+          "start": 153.01,
+          "end": 153.31,
+          "text": "I'll do it.",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 153.31,
+          "end": 153.59,
+          "text": "Okay.",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 154.39,
+      "end": 157.91,
+      "sentences": [
+        {
+          "start": 154.39,
+          "end": 155.77,
+          "text": "So I'm walking across the battlefield.",
+          "blankIndexes": [
+            2,
+            3,
+            5
+          ]
+        },
+        {
+          "start": 157.31,
+          "end": 157.91,
+          "text": "There's someone.",
+          "blankIndexes": [
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 158.23,
+      "end": 161.03,
+      "sentences": [
+        {
+          "start": 158.23,
+          "end": 158.63,
+          "text": "Do they...",
+          "blankIndexes": [
+            0,
+            1
+          ]
+        },
+        {
+          "start": 158.63,
+          "end": 161.03,
+          "text": "Are they a heart attack victim or are they resting?",
+          "blankIndexes": [
+            5
+          ]
+        }
+      ]
+    },
+    {
+      "start": 161.23,
+      "end": 162.73,
+      "sentences": [
+        {
+          "start": 161.23,
+          "end": 161.75,
+          "text": "Are you okay?",
+          "blankIndexes": [
+            2
+          ]
+        },
+        {
+          "start": 161.91,
+          "end": 162.73,
+          "text": "Oh my God!",
+          "blankIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "start": 162.95,
+      "end": 168.12,
+      "sentences": [
+        {
+          "start": 162.95,
+          "end": 164.43,
+          "text": "Your arms and legs have been blown off!",
+          "blankIndexes": [
+            6
+          ]
+        },
+        {
+          "start": 166.02,
+          "end": 168.12,
+          "text": "All right, well let's get back to it, because you're losing them.",
+          "blankIndexes": [
+            9
+          ]
+        }
+      ]
+    },
+    {
+      "start": 170.01,
+      "end": 174.05,
+      "sentences": [
+        {
+          "start": 170.01,
+          "end": 171.07,
+          "text": "Okay, too fast.",
+          "blankIndexes": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "start": 171.43,
+          "end": 174.05,
+          "text": "Everyone, we need to pump at a pace of 100 beats per minutes.",
+          "blankIndexes": [
+            0,
+            10,
+            12
+          ]
+        }
+      ]
+    },
+    {
+      "start": 174.27,
+      "end": 177.41,
+      "sentences": [
+        {
+          "start": 174.27,
+          "end": 176.49,
+          "text": "Okay, that's hard to keep track.",
+          "blankIndexes": [
+            1,
+            5
+          ]
+        },
+        {
+          "start": 176.57,
+          "end": 177.41,
+          "text": "How many is that per hour?",
+          "blankIndexes": [
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "start": 177.57,
+      "end": 180.33,
+      "sentences": [
+        {
+          "start": 177.57,
+          "end": 178.25,
+          "text": "How's that gonna help you?",
+          "blankIndexes": [
+            2
+          ]
+        },
+        {
+          "start": 178.67,
+          "end": 180.33,
+          "text": "I will divide and then count to it.",
+          "blankIndexes": [
+            2,
+            5
+          ]
+        }
+      ]
+    },
+    {
+      "start": 180.43,
+      "end": 185.23,
+      "sentences": [
+        {
+          "start": 180.43,
+          "end": 180.61,
+          "text": "Right.",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 181.15,
+          "end": 185.23,
+          "text": "Okay, well, a good trick is to pump to the tune of staying alive by the Bee Gees.",
+          "blankIndexes": [
+            4,
+            12,
+            13
+          ]
+        }
+      ]
+    },
+    {
+      "start": 185.35,
+      "end": 186.89,
+      "sentences": [
+        {
+          "start": 185.35,
+          "end": 185.91,
+          "text": "Do you know that sounds?",
+          "blankIndexes": [
+            4
+          ]
+        },
+        {
+          "start": 185.93,
+          "end": 186.89,
+          "text": "Yes, yes, I do.",
+          "blankIndexes": [
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 187.05,
+      "end": 189.89,
+      "sentences": [
+        {
+          "start": 187.05,
+          "end": 187.55,
+          "text": "I love that song.",
+          "blankIndexes": [
+            1,
+            3
+          ]
+        },
+        {
+          "start": 188.71,
+          "end": 189.89,
+          "text": "First, I was afraid.",
+          "blankIndexes": [
+            0,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "start": 190.51,
+      "end": 193.75,
+      "sentences": [
+        {
+          "start": 190.51,
+          "end": 191.71,
+          "text": "I was petrified.",
+          "blankIndexes": [
+            2
+          ]
+        },
+        {
+          "start": 192.05,
+          "end": 193.75,
+          "text": "No, it's...",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 193.75,
+      "end": 197.05,
+      "sentences": [
+        {
+          "start": 193.75,
+          "end": 196.11,
+          "text": "Uh, uh, uh, uh, staying alive.",
+          "blankIndexes": [
+            4,
+            5
+          ]
+        },
+        {
+          "start": 196.13,
+          "end": 197.05,
+          "text": "Okay, yeah, yeah, yeah.",
+          "blankIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "start": 197.07,
+      "end": 199.59,
+      "sentences": [
+        {
+          "start": 197.07,
+          "end": 198.31,
+          "text": "You were in the parking lot earlier.",
+          "blankIndexes": [
+            4,
+            6
+          ]
+        },
+        {
+          "start": 198.43,
+          "end": 199.59,
+          "text": "That's how I know you.",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 202.87,
+      "end": 211.01,
+      "sentences": [
+        {
+          "start": 202.87,
+          "end": 206.57,
+          "text": "Ah, ah, ah, ah, staying alive, staying alive.",
+          "blankIndexes": [
+            6
+          ]
+        },
+        {
+          "start": 207.07,
+          "end": 211.01,
+          "text": "Uh, uh, uh, uh, stay alive, stay alive.",
+          "blankIndexes": [
+            5,
+            7
+          ]
+        }
+      ]
+    },
+    {
+      "start": 211.37,
+      "end": 214.17,
+      "sentences": [
+        {
+          "start": 211.37,
+          "end": 211.69,
+          "text": "Uh, uh, uh, uh.",
+          "blankIndexes": [
+            2
+          ]
+        },
+        {
+          "start": 211.69,
+          "end": 214.17,
+          "text": "You can't tell by the way how I use my walk.",
+          "blankIndexes": [
+            1,
+            10
+          ]
+        }
+      ]
+    },
+    {
+      "start": 214.35,
+      "end": 225.7,
+      "sentences": [
+        {
+          "start": 214.35,
+          "end": 216.19,
+          "text": "I'm a woman's man, no time to talk.",
+          "blankIndexes": [
+            2
+          ]
+        },
+        {
+          "start": 216.19,
+          "end": 225.7,
+          "text": "Words are glad when I've been kicked around since I was born Well, it's all right, it's okay You can look the other way Luda-da",
+          "blankIndexes": [
+            0,
+            24
+          ]
+        }
+      ]
+    },
+    {
+      "start": 229.12,
+      "end": 233.32,
+      "sentences": [
+        {
+          "start": 229.12,
+          "end": 231.44,
+          "text": "-da-na-na-na-na-na-na-na-na-a-na-na-a-na-na-a-na-na.",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 231.44,
+          "end": 233.32,
+          "text": "Staying alive, staying alive.",
+          "blankIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "start": 233.42,
+      "end": 240.14,
+      "sentences": [
+        {
+          "start": 233.42,
+          "end": 238.84,
+          "text": "Yeah, okay, you didn't maintain 100 beats per minutes And the ambulance didn't arrive because nobody called 911.",
+          "blankIndexes": [
+            3,
+            11,
+            16
+          ]
+        },
+        {
+          "start": 239.52,
+          "end": 240.14,
+          "text": "So you lost him.",
+          "blankIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "start": 240.66,
+      "end": 243.26,
+      "sentences": [
+        {
+          "start": 240.66,
+          "end": 241.78,
+          "text": "Okay, he's dead.",
+          "blankIndexes": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "start": 242.2,
+          "end": 243.26,
+          "text": "Anyone know what we do next?",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 243.44,
+      "end": 244.56,
+      "sentences": [
+        {
+          "start": 243.44,
+          "end": 243.58,
+          "text": "Anybody?",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 244.38,
+          "end": 244.56,
+          "text": "Rose?",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 245.4,
+      "end": 246.76,
+      "sentences": [
+        {
+          "start": 245.4,
+          "end": 246.18,
+          "text": "I have no idea.",
+          "blankIndexes": [
+            1,
+            3
+          ]
+        },
+        {
+          "start": 246.36,
+          "end": 246.76,
+          "text": "Anyone else?",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 246.94,
+      "end": 247.82,
+      "sentences": [
+        {
+          "start": 246.94,
+          "end": 247.44,
+          "text": "We bury him.",
+          "blankIndexes": [
+            1
+          ]
+        },
+        {
+          "start": 247.58,
+          "end": 247.82,
+          "text": "Wrong.",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 248.1,
+      "end": 251.64,
+      "sentences": [
+        {
+          "start": 248.1,
+          "end": 249.58,
+          "text": "Check for an organ donor card.",
+          "blankIndexes": [
+            0,
+            3,
+            4
+          ]
+        },
+        {
+          "start": 249.58,
+          "end": 251.64,
+          "text": "If he has one, we only have minutes to harvest.",
+          "blankIndexes": [
+            7,
+            9
+          ]
+        }
+      ]
+    },
+    {
+      "start": 251.78,
+      "end": 253.7,
+      "sentences": [
+        {
+          "start": 251.78,
+          "end": 252.8,
+          "text": "He has no wallet, I checked.",
+          "blankIndexes": [
+            3,
+            5
+          ]
+        },
+        {
+          "start": 252.92,
+          "end": 253.7,
+          "text": "He is an organ owner.",
+          "blankIndexes": [
+            3,
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "start": 253.84,
+      "end": 254.34,
+      "sentences": [
+        {
+          "start": 253.84,
+          "end": 254.16,
+          "text": "He is.",
+          "blankIndexes": [
+            0,
+            1
+          ]
+        },
+        {
+          "start": 254.32,
+          "end": 254.34,
+          "text": "Yeah.",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 254.58,
+      "end": 257.49,
+      "sentences": [
+        {
+          "start": 254.58,
+          "end": 256.0,
+          "text": "Give me some ice in a styrofoam bucket.",
+          "blankIndexes": [
+            6,
+            7
+          ]
+        },
+        {
+          "start": 257.03,
+          "end": 257.49,
+          "text": "Here we go.",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 258.53,
+      "end": 260.84,
+      "sentences": [
+        {
+          "start": 258.53,
+          "end": 259.53,
+          "text": "Oh, my God!",
+          "blankIndexes": [
+            2
+          ]
+        },
+        {
+          "start": 260.64,
+          "end": 260.84,
+          "text": "Why?",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 263.12,
+      "end": 265.18,
+      "sentences": [
+        {
+          "start": 263.12,
+          "end": 264.4,
+          "text": "We search for the organs.",
+          "blankIndexes": [
+            1,
+            4
+          ]
+        },
+        {
+          "start": 264.66,
+          "end": 265.18,
+          "text": "Where's the heart?",
+          "blankIndexes": [
+            0,
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "start": 265.58,
+      "end": 267.3,
+      "sentences": [
+        {
+          "start": 265.58,
+          "end": 266.18,
+          "text": "The precious heart.",
+          "blankIndexes": [
+            1,
+            2
+          ]
+        },
+        {
+          "start": 266.44,
+          "end": 267.3,
+          "text": "I'm not feeling well.",
+          "blankIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "start": 267.48,
+      "end": 268.5,
+      "sentences": [
+        {
+          "start": 267.48,
+          "end": 267.98,
+          "text": "I need to sit.",
+          "blankIndexes": [
+            1,
+            3
+          ]
+        },
+        {
+          "start": 268.34,
+          "end": 268.5,
+          "text": "Oh.",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "start": 270.08,
+      "end": 272.82,
+      "sentences": [
+        {
+          "start": 270.08,
+          "end": 271.28,
+          "text": "Hey, Stanley.",
+          "blankIndexes": [
+            1
+          ]
+        },
+        {
+          "start": 272.26,
+          "end": 272.82,
+          "text": "Are you okay?",
+          "blankIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "start": 274.92,
+      "end": 276.76,
+      "sentences": [
+        {
+          "start": 274.92,
+          "end": 276.14,
+          "text": "Oh, my God.",
+          "blankIndexes": [
+            2
+          ]
+        },
+        {
+          "start": 276.14,
+          "end": 276.76,
+          "text": "Why would you...",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 276.76,
+      "end": 280.06,
+      "sentences": [
+        {
+          "start": 276.76,
+          "end": 277.16,
+          "text": "Dwight?",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 277.6,
+          "end": 280.06,
+          "text": "Oh, my God.",
+          "blankIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "start": 280.24,
+      "end": 283.2,
+      "sentences": [
+        {
+          "start": 280.24,
+          "end": 282.02,
+          "text": "Can you tell me why you had to cut this?",
+          "blankIndexes": [
+            4
+          ]
+        },
+        {
+          "start": 282.04,
+          "end": 283.2,
+          "text": "face off the dummy.",
+          "blankIndexes": [
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "start": 283.77,
+      "end": 289.55,
+      "sentences": [
+        {
+          "start": 283.77,
+          "end": 288.25,
+          "text": "I didn't think it was very realistic in the movie, and it turns out, it's pretty realistic.",
+          "blankIndexes": [
+            1,
+            16
+          ]
+        },
+        {
+          "start": 288.67,
+          "end": 289.55,
+          "text": "We had to pay for it.",
+          "blankIndexes": [
+            1,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "start": 289.85,
+      "end": 293.41,
+      "sentences": [
+        {
+          "start": 289.85,
+          "end": 290.85,
+          "text": "It cost us $3,500.",
+          "blankIndexes": [
+            1
+          ]
+        },
+        {
+          "start": 291.79,
+          "end": 293.41,
+          "text": "$5,300 for a dummy.",
+          "blankIndexes": [
+            3
+          ]
+        }
+      ]
+    }
+  ]
+}

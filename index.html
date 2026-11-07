@@ -8,6 +8,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="style.css" />
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   </head>
   <body>
     <div class="auth-backdrop open" id="authBackdrop">
@@ -126,6 +129,61 @@
         </form>
       </section>
     </div>
+
+    <!-- Ayarlar Modalı -->
+    <div class="login-backdrop" id="settingsBackdrop" aria-hidden="true">
+      <section class="login-card" role="dialog" aria-modal="true" style="max-width: 440px;">
+        <button class="modal-close-button" type="button" id="closeSettingsButton" aria-label="Ayarlar penceresini kapat">×</button>
+        <div class="login-form-brand">subscript<span>.</span></div>
+        <h2 style="font-size: 20px; font-weight: 800; margin: 4px 0;">Hesap & Tercihler</h2>
+        <p class="login-form-subtitle" style="font-size: 12px; margin-bottom: 16px;">Profil bilgilerinizi ve üyelik planınızı yönetin.</p>
+
+        <!-- İsim Güncelleme -->
+        <form id="updateNameForm" style="margin-bottom: 20px; text-align: left;">
+          <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 4px;">Ad Soyad</label>
+          <div class="inputForm">
+            <input id="settingsNameInput" type="text" class="input" placeholder="Adınız" />
+          </div>
+          <button type="submit" class="button-submit" style="height: 38px; margin-top: 8px;">Adı Güncelle</button>
+        </form>
+
+        <div class="avatar-preference">
+          <label>Profil avatarı</label>
+          <p>Baş harflerin avatarında görünür. Rengini seçebilirsin.</p>
+          <div class="avatar-color-options" id="avatarColorOptions" role="group" aria-label="Avatar rengi">
+            <button type="button" class="avatar-color-option avatar-color-violet" data-avatar-color="violet" aria-label="Mor"></button>
+            <button type="button" class="avatar-color-option avatar-color-ocean" data-avatar-color="ocean" aria-label="Okyanus"></button>
+            <button type="button" class="avatar-color-option avatar-color-sunset" data-avatar-color="sunset" aria-label="Gün batımı"></button>
+            <button type="button" class="avatar-color-option avatar-color-mint" data-avatar-color="mint" aria-label="Mint"></button>
+            <button type="button" class="avatar-color-option avatar-color-rose" data-avatar-color="rose" aria-label="Gül"></button>
+            <button type="button" class="avatar-color-option avatar-color-slate" data-avatar-color="slate" aria-label="Lacivert"></button>
+          </div>
+        </div>
+
+        <!-- Şifre Değiştirme -->
+        <form id="updatePasswordForm" style="margin-bottom: 20px; text-align: left;">
+          <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 4px;">Şifre Değiştir</label>
+          <div class="inputForm" style="margin-bottom: 6px;">
+            <input id="settingsCurrentPass" type="password" class="input" placeholder="Mevcut Şifre" />
+          </div>
+          <div class="inputForm">
+            <input id="settingsNewPass" type="password" class="input" placeholder="Yeni Şifre (En az 8 karakter)" />
+          </div>
+          <p id="settingsPassMsg" class="login-field-error" style="margin-top: 4px; font-size: 12px;"></p>
+          <button type="submit" class="button-submit" style="height: 38px; margin-top: 8px; background: #6366f1;">Şifreyi Değiştir</button>
+        </form>
+
+        <!-- Üyelik Durumu -->
+        <div style="padding: 14px; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2); border-radius: 12px; text-align: left;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size: 12px; font-weight: 700;">Abonelik Planı:</span>
+            <span id="settingsPlanBadge" style="font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 6px; background: #6366f1; color:#fff;">FREE</span>
+          </div>
+          <p style="font-size: 11px; color: var(--muted); margin: 6px 0 10px;">Pro plana geçerek sınırsız film/dizi sahnesi ve yapay zeka ipuçlarına erişin.</p>
+          <button type="button" id="upgradePlanBtn" class="button-submit" style="height: 38px; background: #10b981;">Pro Plana Yükselt (Stripe)</button>
+        </div>
+      </section>
+    </div>
     <main class="app-shell">
       <aside class="side-nav" id="sideNav">
         <a class="side-brand" href="#">subscript<span>.</span></a>
@@ -142,6 +200,10 @@
             <span class="side-nav-icon">⚙</span>
             <span class="button_top">Ayarlar</span>
           </button>
+          <a class="side-nav-item admin-nav-item" id="adminNavItem" href="/admin" data-section="admin" hidden>
+            <span class="side-nav-icon">▣</span>
+            <span class="button_top">Admin</span>
+          </a>
         </nav>
         <div class="side-nav-footer">
           <span class="side-nav-version">subscript. beta</span>
@@ -173,7 +235,6 @@
           </div>
           <button class="header-profile-button" type="button" id="headerProfileButton" aria-label="Profil menüsünü aç">
             <span class="avatar avatar-small" id="headerAvatar">S</span>
-            <span class="language-flag" id="headerLanguageFlag" title="Öğrenilen dil">🇬🇧</span>
             <span class="header-profile-name" id="headerProfileName">Misafir</span>
             <span class="profile-chevron">⌄</span>
           </button>
@@ -292,6 +353,8 @@
           </aside>
         </div>
       </section>
+
+      <section class="admin-view" id="adminView" hidden aria-label="Admin paneli"></section>
 
       <!-- Ana 2 Sütunlu Grid: Sol (Video + Egzersiz), Sağ (Klip Akışı) -->
       <div class="main-layout">

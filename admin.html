@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>subscript. — Yönetim Paneli</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    body { font-family: 'Manrope', sans-serif; background: #0b1120; color: #f1f5f9; }
+    .mono { font-family: 'DM Mono', monospace; }
+    .admin-shell { display: flex; gap: 2rem; max-width: 1440px; margin: 0 auto; }
+    .admin-sidebar {
+      position: sticky; top: 2.5rem; align-self: flex-start; width: 190px; min-width: 190px;
+      min-height: calc(100vh - 5rem); padding: 1rem 1rem 1.25rem 0;
+      border-right: 1px solid #1e293b; display: flex; flex-direction: column;
+    }
+    .admin-brand { color: #a78bfa; font-size: 1.5rem; font-weight: 900; letter-spacing: -0.06em; margin: 0 0 2.25rem .65rem; }
+    .admin-brand span { color: #fb7185; }
+    .admin-nav { display: grid; gap: .55rem; }
+    .admin-nav a {
+      display: flex; align-items: center; gap: .7rem; padding: .8rem .85rem;
+      border: 1px solid transparent; border-radius: .8rem; color: #94a3b8;
+      font-size: .82rem; font-weight: 700; text-decoration: none; transition: .2s ease;
+    }
+    .admin-nav a:hover { color: #fff; background: #172033; border-color: #334155; }
+    .admin-nav a.active { color: #c4b5fd; background: rgba(99,102,241,.16); border-color: rgba(129,140,248,.35); }
+    .admin-nav-icon { width: 1.25rem; text-align: center; font-size: 1rem; }
+    .admin-content { min-width: 0; flex: 1; }
+    @media (max-width: 760px) {
+      body { padding: 1rem !important; }
+      .admin-shell { display: block; }
+      .admin-sidebar { position: static; width: auto; min-width: 0; min-height: 0; padding: 0 0 1rem; border-right: 0; border-bottom: 1px solid #1e293b; }
+      .admin-brand { margin: 0 0 1rem; }
+      .admin-nav { display: flex; overflow-x: auto; }
+      .admin-nav a { white-space: nowrap; }
+    }
+  </style>
+</head>
+<body class="min-h-screen p-6 md:p-10">
+  <div class="admin-shell">
+    <aside class="admin-sidebar" aria-label="Ana menü">
+      <a class="admin-brand" href="/">subscript<span>.</span></a>
+      <nav class="admin-nav">
+        <a href="/"><span class="admin-nav-icon">⌂</span><span>Öğren</span></a>
+        <a href="/profil"><span class="admin-nav-icon">◉</span><span>Profil</span></a>
+        <a class="active" href="/admin" aria-current="page"><span class="admin-nav-icon">▣</span><span>Admin</span></a>
+      </nav>
+    </aside>
+    <main class="admin-content max-w-6xl space-y-8">
+    <!-- Header -->
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-slate-800">
+      <div>
+        <div class="flex items-center gap-3">
+          <span class="text-2xl font-black tracking-tight text-white">subscript<span class="text-indigo-400">.</span></span>
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Admin Dashboard</span>
+        </div>
+        <p class="text-slate-400 text-sm mt-1">Platform metrikleri, klip kütüphanesi ve kullanıcı yönetimi</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="/" class="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 transition border border-slate-700 flex items-center gap-2">
+          <span>← Uygulamaya Dön</span>
+        </a>
+        <button id="refreshBtn" class="px-4 py-2 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 transition text-white shadow-lg shadow-indigo-600/20">
+          Yenile ⟳
+        </button>
+      </div>
+    </header>
+
+    <!-- Auth Error Alert -->
+    <div id="authAlert" class="hidden p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+      <div>
+        ⚠️ Yönetici paneline ve AI video işleme motoruna erişmek için <strong>admin hesabı</strong> ile giriş yapmalısınız.
+      </div>
+      <a href="/" class="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 font-bold text-amber-200 transition text-xs whitespace-nowrap">
+        Giriş Yapmak İçin Tıkla →
+      </a>
+    </div>
+
+    <!-- KPI Stats Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800">
+        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Toplam Kullanıcı</span>
+        <div id="statTotalUsers" class="text-3xl font-extrabold text-white mt-2">—</div>
+        <span class="text-xs text-emerald-400 mt-1 inline-block">Aktif hesaplar</span>
+      </div>
+      <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800">
+        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Doğrulanmış E-posta</span>
+        <div id="statVerifiedUsers" class="text-3xl font-extrabold text-indigo-400 mt-2">—</div>
+        <span class="text-xs text-slate-400 mt-1 inline-block">Doğrulama oranı</span>
+      </div>
+      <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800">
+        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tamamlanan Pratik</span>
+        <div id="statTotalProgress" class="text-3xl font-extrabold text-emerald-400 mt-2">—</div>
+        <span class="text-xs text-slate-400 mt-1 inline-block">Başarılı egzersiz parçası</span>
+      </div>
+      <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800">
+        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Yayındaki Klipler</span>
+        <div id="statClipCount" class="text-3xl font-extrabold text-amber-400 mt-2">—</div>
+        <span class="text-xs text-slate-400 mt-1 inline-block">Katalogda hazır</span>
+      </div>
+    </div>
+
+    <!-- Main Grid: Clips Management & Add Clip -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Clips Table (2 cols) -->
+      <div class="lg:col-span-2 space-y-4">
+        <div class="flex justify-between items-center">
+          <h2 class="text-lg font-bold text-white">🎬 Yayındaki Klip Kataloğu</h2>
+          <span id="clipsCountBadge" class="text-xs px-2 py-1 rounded bg-slate-800 text-slate-300 font-mono">0 klip</span>
+        </div>
+
+        <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
+          <table class="w-full text-left text-sm text-slate-300">
+            <thead class="bg-slate-950/60 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-800">
+              <tr>
+                <th class="p-4">Başlık / Dizi</th>
+                <th class="p-4">Seviye</th>
+                <th class="p-4">Süre</th>
+                <th class="p-4 text-right">İşlem</th>
+              </tr>
+            </thead>
+            <tbody id="clipsTableBody" class="divide-y divide-slate-800/60">
+              <tr>
+                <td colspan="4" class="p-6 text-center text-slate-500">Klipler yükleniyor…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Add New Clip Form (1 col) -->
+      <div class="space-y-6">
+        <!-- 1. AI Otomatik Transkripsiyon Kartı -->
+        <div class="space-y-4">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">⚡</span>
+            <h2 class="text-lg font-bold text-white">YouTube AI İle Ekle</h2>
+          </div>
+          <div class="p-6 rounded-2xl bg-gradient-to-b from-indigo-950/40 to-slate-900 border border-indigo-500/30 space-y-4">
+            <p class="text-xs text-indigo-200">YouTube linkini yapıştırın; Whisper yapay zekası videoyu indirip saniye saniye cümlelere bölsün.</p>
+            <form id="aiTranscribeForm" class="space-y-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">YouTube Video URL</label>
+                <input type="url" id="aiUrl" required placeholder="https://www.youtube.com/watch?v=..." class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm focus:outline-none focus:border-indigo-500">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Dizi / Film Başlığı</label>
+                <input type="text" id="aiTitle" required placeholder="Breaking Bad · Sezon 2" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm focus:outline-none focus:border-indigo-500">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Hedef Seviye</label>
+                <select id="aiLevel" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm focus:outline-none focus:border-indigo-500">
+                  <option value="A1">A1 (Başlangıç)</option>
+                  <option value="A2">A2 (Temel)</option>
+                  <option value="B1" selected>B1 (Orta)</option>
+                  <option value="B2">B2 (Orta Üstü)</option>
+                  <option value="C1">C1 (İleri)</option>
+                </select>
+              </div>
+              <button type="submit" id="aiSubmitBtn" class="w-full py-2.5 rounded-xl font-bold text-sm bg-indigo-600 hover:bg-indigo-500 text-white transition shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2">
+                <span>Yapay Zekayı Başlat 🚀</span>
+              </button>
+            </form>
+            <!-- Canlı İlerleme Konsolu -->
+            <div id="aiConsoleBox" class="hidden space-y-2 mt-4 pt-4 border-t border-slate-800">
+              <div class="flex justify-between items-center text-xs">
+                <span class="font-bold text-indigo-400" id="aiJobStatus">İşleniyor…</span>
+                <span class="font-mono text-slate-500" id="aiJobId"></span>
+              </div>
+              <div id="aiLogs" class="bg-black/70 rounded-xl p-3 font-mono text-xs text-emerald-400 max-h-40 overflow-y-auto space-y-1 border border-slate-800"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Manuel JSON Bağlama Kartı -->
+        <div class="space-y-4">
+          <h2 class="text-lg font-bold text-slate-400 text-sm">📁 Hazır JSON Dosyası Ekle</h2>
+          <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+            <form id="addClipForm" class="space-y-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Klip ID (Slug)</label>
+                <input type="text" id="newClipId" required placeholder="ornek-film-adi" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm focus:outline-none focus:border-indigo-500">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Başlık</label>
+                <input type="text" id="newClipTitle" required placeholder="The Godfather" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm focus:outline-none focus:border-indigo-500">
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Seviye</label>
+                  <select id="newClipLevel" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm focus:outline-none focus:border-indigo-500">
+                    <option value="A1">A1</option>
+                    <option value="A2">A2</option>
+                    <option value="B1" selected>B1</option>
+                    <option value="B2">B2</option>
+                    <option value="C1">C1</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">YouTube ID</label>
+                  <input type="text" id="newClipYtId" required placeholder="4m8f8dLa_ig" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm focus:outline-none focus:border-indigo-500">
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">JSON Veri Yolu</label>
+                <input type="text" id="newClipDataFile" required placeholder="clips/the-godfather.json" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm focus:outline-none focus:border-indigo-500">
+              </div>
+              <div id="addClipStatus" class="text-xs font-medium"></div>
+              <button type="submit" id="addClipSubmitBtn" class="w-full py-2.5 rounded-xl font-bold text-sm bg-slate-800 hover:bg-slate-700 text-white transition">
+                Kataloğa Ekle
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Users Table -->
+    <div class="space-y-4 pt-4">
+      <h2 class="text-lg font-bold text-white">👥 Son Kayıt Olan Kullanıcılar</h2>
+      <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
+        <table class="w-full text-left text-sm text-slate-300">
+          <thead class="bg-slate-950/60 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-800">
+            <tr>
+              <th class="p-4">Kullanıcı</th>
+              <th class="p-4">E-posta</th>
+              <th class="p-4">Seviye</th>
+              <th class="p-4">Plan</th>
+              <th class="p-4">Doğrulandı</th>
+              <th class="p-4">Kayıt Tarihi</th>
+            </tr>
+          </thead>
+          <tbody id="usersTableBody" class="divide-y divide-slate-800/60">
+            <tr>
+              <td colspan="6" class="p-6 text-center text-slate-500">Yükleniyor…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <!-- Sentence / Transkripsiyon Editör Modalı -->
+    <div id="sentenceModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+        <!-- Modal Başlık -->
+        <div class="p-6 border-b border-slate-800 flex justify-between items-start bg-slate-950/40">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs px-2.5 py-0.5 rounded-full font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30" id="editorLevelBadge">B1</span>
+              <h3 class="text-xl font-extrabold text-white" id="editorClipTitle">Klip Başlığı</h3>
+            </div>
+            <p class="text-xs text-slate-400 mt-1" id="editorMetaText">0 Parça · 0 Cümle</p>
+          </div>
+          <button onclick="closeSentenceModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">✕</button>
+        </div>
+
+        <!-- Klip Başlık & Seviye Hızlı Düzenleme -->
+        <div class="px-6 py-3 bg-slate-950/70 border-b border-slate-800/80 flex flex-wrap gap-4 items-center">
+          <div class="flex-1 min-w-[200px]">
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Görünecek Başlık</label>
+            <input type="text" id="editorInputTitle" class="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-white text-xs focus:outline-none focus:border-indigo-500">
+          </div>
+          <div class="w-32">
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">CEFR Seviyesi</label>
+            <select id="editorSelectLevel" class="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-white text-xs focus:outline-none focus:border-indigo-500">
+              <option value="A1">A1</option>
+              <option value="A2">A2</option>
+              <option value="B1">B1</option>
+              <option value="B2">B2</option>
+              <option value="C1">C1</option>
+            </select>
+          </div>
+          <div class="text-xs text-slate-400 mt-4 flex items-center gap-1">
+            <span class="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
+            Cümle metinlerini aşağıdan doğrudan düzenleyebilirsiniz.
+          </div>
+        </div>
+
+        <!-- Cümle Listesi (Kaydırılabilir) -->
+        <div class="p-6 overflow-y-auto flex-1 space-y-6" id="editorGroupsContainer">
+          <!-- Dinamik Parçalar ve Cümleler Gelecek -->
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="p-4 px-6 border-t border-slate-800 bg-slate-950/60 flex justify-between items-center">
+          <div id="editorSaveStatus" class="text-xs font-semibold"></div>
+          <div class="flex gap-3">
+            <button onclick="closeSentenceModal()" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 transition">Vazgeç</button>
+            <button onclick="saveSentenceEditor()" id="editorSaveBtn" class="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition shadow-lg shadow-emerald-600/20 flex items-center gap-2">
+              <span>💾 Değişiklikleri Kaydet</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </main>
+  </div>
+
+  <script>
+    const token = localStorage.getItem("subscript_token") || sessionStorage.getItem("subscript_token") || "";
+
+    async function apiRequest(path, options = {}) {
+      const res = await fetch(path, {
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...(options.headers || {})
+        }
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "İstek başarısız");
+      return data;
+    }
+
+    async function loadOverview() {
+      const alertEl = document.getElementById("authAlert");
+      try {
+        const data = await apiRequest("/api/admin/overview");
+        alertEl.classList.add("hidden");
+
+        // KPI
+        document.getElementById("statTotalUsers").textContent = data.totalUsers;
+        document.getElementById("statVerifiedUsers").textContent = `${data.verifiedUsers} / ${data.totalUsers}`;
+        document.getElementById("statTotalProgress").textContent = data.totalProgress;
+        document.getElementById("statClipCount").textContent = data.clipCount;
+        document.getElementById("clipsCountBadge").textContent = `${data.clipCount} klip`;
+
+        // Klipler Tablosu
+        const clipsBody = document.getElementById("clipsTableBody");
+        if (data.clips.length === 0) {
+          clipsBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">Henüz klip yok.</td></tr>`;
+        } else {
+          clipsBody.innerHTML = data.clips.map(c => `
+            <tr class="hover:bg-slate-800/40 transition cursor-pointer" onclick="openSentenceEditor('${c.id}')">
+              <td class="p-4 font-semibold text-white flex items-center gap-3">
+                <img src="https://img.youtube.com/vi/${c.youtubeId}/default.jpg" class="w-12 h-8 object-cover rounded-lg border border-slate-700" alt="">
+                <div>
+                  <div class="hover:text-indigo-400 transition flex items-center gap-2">
+                    <span>${c.title}</span>
+                    <span class="text-[10px] text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded border border-indigo-500/20">Tıkla & Düzenle</span>
+                  </div>
+                  <div class="text-xs text-slate-500 font-mono">${c.id}</div>
+                </div>
+              </td>
+              <td class="p-4">
+                <span class="px-2 py-0.5 rounded text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">${c.level || "B1"}</span>
+              </td>
+              <td class="p-4 text-slate-400 font-mono text-xs">${Math.round(c.durationSeconds || 0)}s</td>
+              <td class="p-4 text-right space-x-2" onclick="event.stopPropagation()">
+                <button onclick="openSentenceEditor('${c.id}')" class="px-3 py-1 text-xs font-semibold rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 transition">
+                  Cümleleri Düzenle 📝
+                </button>
+                <button onclick="deleteClip('${c.id}')" class="px-3 py-1 text-xs font-semibold rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 transition">
+                  Sil
+                </button>
+              </td>
+            </tr>
+          `).join("");
+        }
+
+        // Kullanıcılar Tablosu
+        const usersBody = document.getElementById("usersTableBody");
+        if (!data.recentUsers || data.recentUsers.length === 0) {
+          usersBody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-500">Kullanıcı bulunamadı.</td></tr>`;
+        } else {
+          usersBody.innerHTML = data.recentUsers.map(u => `
+            <tr class="hover:bg-slate-800/40 transition">
+              <td class="p-4 font-semibold text-white">${u.name}</td>
+              <td class="p-4 font-mono text-xs text-slate-300">${u.email}</td>
+              <td class="p-4"><span class="px-2 py-0.5 rounded text-xs font-bold bg-slate-800 text-slate-300">${u.level || "—"}</span></td>
+              <td class="p-4"><span class="px-2 py-0.5 rounded text-xs font-bold ${u.plan === 'pro' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-slate-800 text-slate-400'}">${(u.plan || 'free').toUpperCase()}</span></td>
+              <td class="p-4">${u.email_verified ? '<span class="text-emerald-400 font-bold">✓ Evet</span>' : '<span class="text-slate-500">✕ Hayır</span>'}</td>
+              <td class="p-4 text-xs text-slate-400">${new Date(u.created_at).toLocaleDateString('tr-TR')}</td>
+            </tr>
+          `).join("");
+        }
+      } catch (err) {
+        alertEl.classList.remove("hidden");
+        alertEl.textContent = `⚠️ Yönetici paneli hatası: ${err.message}.`;
+      }
+    }
+
+    async function deleteClip(id) {
+      if (!confirm(`"${id}" klibini katalogdan silmek istediğinize emin misiniz?`)) return;
+      try {
+        await apiRequest(`/api/admin/clips/${encodeURIComponent(id)}`, { method: "DELETE" });
+        loadOverview();
+      } catch (err) {
+        alert("Silme hatası: " + err.message);
+      }
+    }
+
+    // ─── Cümle & Transkripsiyon Editörü ────────────────────────────────────────
+    let currentEditingClipId = null;
+    let currentEditingData = null;
+
+    async function openSentenceEditor(clipId) {
+      currentEditingClipId = clipId;
+      const modal = document.getElementById("sentenceModal");
+      const titleEl = document.getElementById("editorClipTitle");
+      const levelBadge = document.getElementById("editorLevelBadge");
+      const metaEl = document.getElementById("editorMetaText");
+      const container = document.getElementById("editorGroupsContainer");
+      const saveStatus = document.getElementById("editorSaveStatus");
+
+      saveStatus.textContent = "";
+      container.innerHTML = `<div class="p-10 text-center text-slate-500">Cümleler yükleniyor…</div>`;
+      modal.classList.remove("hidden");
+
+      try {
+        const data = await apiRequest(`/api/clips/${encodeURIComponent(clipId)}`);
+        currentEditingData = data;
+
+        titleEl.textContent = data.title;
+        document.getElementById("editorInputTitle").value = data.title;
+        levelBadge.textContent = data.level || "B1";
+        document.getElementById("editorSelectLevel").value = data.level || "B1";
+
+        const totalSentences = data.groups.reduce((acc, g) => acc + (g.sentences ? g.sentences.length : 0), 0);
+        metaEl.textContent = `${data.groups.length} Parça · ${totalSentences} Cümle · YouTube ID: ${data.youtubeId}`;
+
+        // Grupları ve cümleleri render et
+        container.innerHTML = data.groups.map((group, gIdx) => {
+          const sentencesHtml = group.sentences.map((s, sIdx) => {
+            const blankWords = (s.blankIndexes || []).map(idx => s.text.split(" ")[idx]).filter(Boolean).join(", ");
+            return `
+              <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
+                <div class="flex justify-between items-center text-xs text-slate-400">
+                  <span class="font-bold text-slate-300">Cümle ${sIdx + 1}</span>
+                  <span class="font-mono text-[11px]">${s.start}s — ${s.end}s</span>
+                </div>
+                <textarea 
+                  data-group="${gIdx}" 
+                  data-sentence="${sIdx}" 
+                  class="sentence-input w-full p-2.5 rounded-lg bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-indigo-500 font-medium leading-relaxed resize-y"
+                  rows="2"
+                >${s.text}</textarea>
+                ${blankWords ? `<div class="text-[11px] text-amber-300/80 flex items-center gap-1"><span>🎯 Hedef Boşluk Kelimeleri:</span> <strong class="text-amber-300">${blankWords}</strong></div>` : ''}
+              </div>
+            `;
+          }).join("");
+
+          return `
+            <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
+              <div class="flex justify-between items-center pb-2 border-b border-slate-800/80">
+                <span class="text-xs font-black uppercase tracking-wider text-indigo-400">PARÇA ${String(gIdx + 1).padStart(2, "0")}</span>
+                <span class="text-xs font-mono text-slate-400">${group.start}s — ${group.end}s (${(group.end - group.start).toFixed(1)} sn)</span>
+              </div>
+              <div class="space-y-3">
+                ${sentencesHtml}
+              </div>
+            </div>
+          `;
+        }).join("");
+
+      } catch (err) {
+        container.innerHTML = `<div class="p-10 text-center text-rose-400 font-bold">Klip yüklenemedi: ${err.message}</div>`;
+      }
+    }
+
+    function closeSentenceModal() {
+      document.getElementById("sentenceModal").classList.add("hidden");
+      currentEditingClipId = null;
+      currentEditingData = null;
+    }
+
+    async function saveSentenceEditor() {
+      if (!currentEditingClipId || !currentEditingData) return;
+
+      const saveBtn = document.getElementById("editorSaveBtn");
+      const statusEl = document.getElementById("editorSaveStatus");
+      const newTitle = document.getElementById("editorInputTitle").value.trim();
+      const newLevel = document.getElementById("editorSelectLevel").value;
+
+      try {
+        saveBtn.disabled = true;
+        statusEl.className = "text-xs text-slate-400";
+        statusEl.textContent = "Kaydediliyor…";
+
+        // Inputlardaki güncel metinleri topla
+        const inputs = document.querySelectorAll(".sentence-input");
+        inputs.forEach(input => {
+          const gIdx = parseInt(input.dataset.group);
+          const sIdx = parseInt(input.dataset.sentence);
+          const updatedText = input.value.trim();
+
+          if (currentEditingData.groups[gIdx] && currentEditingData.groups[gIdx].sentences[sIdx]) {
+            currentEditingData.groups[gIdx].sentences[sIdx].text = updatedText;
+          }
+        });
+
+        currentEditingData.title = newTitle || currentEditingData.title;
+        currentEditingData.level = newLevel;
+
+        await apiRequest(`/api/admin/clips/${encodeURIComponent(currentEditingClipId)}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            title: newTitle,
+            level: newLevel,
+            groups: currentEditingData.groups
+          })
+        });
+
+        statusEl.className = "text-xs text-emerald-400 font-bold";
+        statusEl.textContent = "✓ Başarıyla kaydedildi!";
+        loadOverview();
+
+        setTimeout(() => {
+          closeSentenceModal();
+        }, 800);
+
+      } catch (err) {
+        statusEl.className = "text-xs text-rose-400 font-bold";
+        statusEl.textContent = "Kaydetme hatası: " + err.message;
+      } finally {
+        saveBtn.disabled = false;
+      }
+    }
+
+    // AI Transcribe Submit
+    document.getElementById("aiTranscribeForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById("aiSubmitBtn");
+      const box = document.getElementById("aiConsoleBox");
+      const statusEl = document.getElementById("aiJobStatus");
+      const jobIdEl = document.getElementById("aiJobId");
+      const logsEl = document.getElementById("aiLogs");
+
+      const url = document.getElementById("aiUrl").value.trim();
+      const title = document.getElementById("aiTitle").value.trim();
+      const level = document.getElementById("aiLevel").value;
+
+      try {
+        btn.disabled = true;
+        btn.innerHTML = `<span class="animate-spin">⏳</span> Başlatılıyor…`;
+        box.classList.remove("hidden");
+        logsEl.innerHTML = `<div class="text-slate-400">Sunucuya istek iletiliyor…</div>`;
+
+        const res = await apiRequest("/api/admin/transcribe", {
+          method: "POST",
+          body: JSON.stringify({ url, title, level })
+        });
+
+        jobIdEl.textContent = `İş ID: ${res.jobId}`;
+        statusEl.textContent = "AI Çalışıyor (Whisper)…";
+
+        // Periyodik durum kontrolü
+        const interval = setInterval(async () => {
+          try {
+            const job = await apiRequest(`/api/admin/jobs/${res.jobId}`);
+            if (job.logs && job.logs.length) {
+              logsEl.innerHTML = job.logs.map(l => `<div>› ${l}</div>`).join("");
+              logsEl.scrollTop = logsEl.scrollHeight;
+            }
+
+            if (job.status === "completed") {
+              clearInterval(interval);
+              statusEl.className = "font-bold text-emerald-400";
+              statusEl.textContent = "✓ Başarıyla Tamamlandı!";
+              btn.disabled = false;
+              btn.innerHTML = "Yapay Zekayı Başlat 🚀";
+              loadOverview();
+            } else if (job.status === "failed") {
+              clearInterval(interval);
+              statusEl.className = "font-bold text-rose-400";
+              statusEl.textContent = "✕ İşlem Başarısız";
+              logsEl.innerHTML += `<div class="text-rose-400 font-bold mt-2">Hata: ${job.error || "Bilinmeyen hata"}</div>`;
+              btn.disabled = false;
+              btn.innerHTML = "Yapay Zekayı Başlat 🚀";
+            }
+          } catch (err) {
+            clearInterval(interval);
+            btn.disabled = false;
+            btn.innerHTML = "Yapay Zekayı Başlat 🚀";
+          }
+        }, 1500);
+
+      } catch (err) {
+        alert("Transkripsiyon başlatılamadı: " + err.message);
+        btn.disabled = false;
+        btn.innerHTML = "Yapay Zekayı Başlat 🚀";
+      }
+    });
+
+    // Add Clip Submit
+    document.getElementById("addClipForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const statusEl = document.getElementById("addClipStatus");
+      const btn = document.getElementById("addClipSubmitBtn");
+
+      const payload = {
+        id: document.getElementById("newClipId").value.trim(),
+        title: document.getElementById("newClipTitle").value.trim(),
+        level: document.getElementById("newClipLevel").value,
+        youtubeId: document.getElementById("newClipYtId").value.trim(),
+        dataFile: document.getElementById("newClipDataFile").value.trim()
+      };
+
+      try {
+        btn.disabled = true;
+        statusEl.className = "text-xs text-slate-400";
+        statusEl.textContent = "Kaydediliyor…";
+
+        await apiRequest("/api/admin/clips", {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+
+        statusEl.className = "text-xs text-emerald-400";
+        statusEl.textContent = "Klip başarıyla eklendi!";
+        document.getElementById("addClipForm").reset();
+        loadOverview();
+      } catch (err) {
+        statusEl.className = "text-xs text-rose-400";
+        statusEl.textContent = err.message;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    window.initAdminPanel = function () {
+      document.getElementById("refreshBtn").addEventListener("click", loadOverview);
+      return loadOverview();
+    };
+  </script>
+</body>
+</html>

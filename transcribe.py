@@ -25,6 +25,13 @@ from typing import Any
 
 SENTENCE_END = re.compile(r'[.!?]["\'\)\]]*$')
 YOUTUBE_ID_RE = re.compile(r'(?:v=|youtu\.be/|/v/|/embed/)([A-Za-z0-9_-]{11})')
+BLANK_STOP_WORDS = {
+    "a", "an", "and", "are", "as", "at", "be", "but", "by", "do", "for",
+    "from", "he", "her", "him", "his", "i", "if", "in", "is", "it", "me",
+    "my", "no", "of", "on", "or", "our", "she", "so", "that", "the", "their",
+    "them", "there", "they", "this", "to", "us", "was", "we", "were", "what",
+    "when", "who", "with", "you", "your",
+}
 
 # Directory layout: all output files live next to this script
 SCRIPT_DIR = Path(__file__).parent
@@ -89,21 +96,38 @@ def choose_blanks(text: str, max_blanks: int = 3) -> list[int]:
     """
     Pick word positions to blank out.
     Rules:
-      • Only words with 5+ letters qualify (skips short connectors like
-        "yeah", "know", "with", "that" etc.).
+      • Prefer words with 5+ letters.
+      • For short sentences, use meaningful 3+ letter words as a fallback.
+        This guarantees that short dialogue such as "Yes it is" still has
+        an exercise target without blanking only articles or pronouns.
       • At most `max_blanks` blanks; at least 1 if any candidate exists.
       • Distributed evenly across the sentence.
     """
     tokens = text.split()
-    candidates = [
+    long_candidates = [
         i for i, t in enumerate(tokens)
         if len(re.sub(r"[^A-Za-z]", "", t)) >= 5
     ]
+    fallback_candidates = [
+        i for i, t in enumerate(tokens)
+        if len(re.sub(r"[^A-Za-z]", "", t)) >= 3
+        and re.sub(r"[^A-Za-z]", "", t).lower() not in BLANK_STOP_WORDS
+    ]
+    any_word_candidates = [
+        i for i, t in enumerate(tokens)
+        if len(re.sub(r"[^A-Za-z]", "", t)) >= 2
+    ]
+    candidates = long_candidates or fallback_candidates or any_word_candidates
     if not candidates:
         return []
     count = min(max_blanks, max(1, len(candidates) // 3))
-    spacing = max(1, len(candidates) // count)
-    return candidates[::spacing][:count]
+    if len(candidates) <= max_blanks:
+        return candidates
+    positions = [
+        round(index * (len(candidates) - 1) / (count - 1))
+        for index in range(count)
+    ] if count > 1 else [len(candidates) // 2]
+    return [candidates[position] for position in positions]
 
 
 def words_to_sentences(words: list[dict[str, Any]]) -> list[dict[str, Any]]:

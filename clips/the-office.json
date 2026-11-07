@@ -23,7 +23,9 @@
           "end": 35.33,
           "text": "My own fault for using PowerPoint.",
           "blankIndexes": [
-            2
+            2,
+            4,
+            5
           ]
         }
       ]
@@ -37,7 +39,8 @@
           "end": 43.0,
           "text": "But experience is the best teacher.",
           "blankIndexes": [
-            1
+            1,
+            5
           ]
         },
         {
@@ -45,7 +48,7 @@
           "end": 51.42,
           "text": "Today, smoking is going to save lives.",
           "blankIndexes": [
-            0
+            3
           ]
         }
       ]
@@ -59,7 +62,7 @@
           "end": 72.39,
           "text": "Didn't one smell anything smoky?",
           "blankIndexes": [
-            0
+            3
           ]
         },
         {
@@ -67,7 +70,9 @@
           "end": 74.86,
           "text": "Did you bring your jerky in again?",
           "blankIndexes": [
-            2
+            2,
+            4,
+            6
           ]
         }
       ]
@@ -81,7 +86,8 @@
           "end": 86.91,
           "text": "What's the procedure?",
           "blankIndexes": [
-            0
+            0,
+            2
           ]
         },
         {
@@ -124,13 +130,20 @@
           "start": 90.71,
           "end": 91.43,
           "text": "It's out in the hall.",
-          "blankIndexes": []
+          "blankIndexes": [
+            0,
+            1,
+            4
+          ]
         },
         {
           "start": 91.65,
           "end": 92.47,
           "text": "No, we don't know that.",
-          "blankIndexes": []
+          "blankIndexes": [
+            2,
+            3
+          ]
         }
       ]
     },
@@ -143,14 +156,16 @@
           "end": 93.91,
           "text": "The smoke could be coming through an air duct.",
           "blankIndexes": [
-            1
+            4
           ]
         },
         {
           "start": 93.99,
           "end": 94.67,
           "text": "Oh my God!",
-          "blankIndexes": []
+          "blankIndexes": [
+            2
+          ]
         }
       ]
     },
@@ -185,7 +200,8 @@
           "end": 97.61,
           "text": "What's the procedure?",
           "blankIndexes": [
-            0
+            0,
+            2
           ]
         },
         {
@@ -193,7 +209,8 @@
           "end": 98.79,
           "text": "What's the procedure?",
           "blankIndexes": [
-            0
+            0,
+            2
           ]
         }
       ]
@@ -206,13 +223,17 @@
           "start": 98.91,
           "end": 99.65,
           "text": "Stay f*** up!",
-          "blankIndexes": []
+          "blankIndexes": [
+            0
+          ]
         },
         {
           "start": 99.78,
           "end": 100.7,
           "text": "Wait, whoa, blah, wow.",
-          "blankIndexes": []
+          "blankIndexes": [
+            2
+          ]
         }
       ]
     },
@@ -224,13 +245,18 @@
           "start": 100.82,
           "end": 101.86,
           "text": "Wait, your .",
-          "blankIndexes": []
+          "blankIndexes": [
+            0
+          ]
         },
         {
           "start": 101.86,
           "end": 102.26,
           "text": "Come down!",
-          "blankIndexes": []
+          "blankIndexes": [
+            0,
+            1
+          ]
         }
       ]
     },
@@ -251,7 +277,8 @@
           "end": 104.63,
           "text": "Touch the handle.",
           "blankIndexes": [
-            0
+            0,
+            2
           ]
         }
       ]
@@ -265,14 +292,18 @@
           "end": 106.69,
           "text": "If it's hot, there could be a fire in the hallway.",
           "blankIndexes": [
-            3
+            3,
+            4,
+            10
           ]
         },
         {
           "start": 108.98,
           "end": 109.62,
           "text": "What is warm me?",
-          "blankIndexes": []
+          "blankIndexes": [
+            2
+          ]
         }
       ]
     },
@@ -284,14 +315,17 @@
           "start": 109.74,
           "end": 110.1,
           "text": "Oh, my gosh.",
-          "blankIndexes": []
+          "blankIndexes": [
+            2
+          ]
         },
         {
           "start": 110.98,
           "end": 112.04,
           "text": "Not a viable option.",
           "blankIndexes": [
-            2
+            2,
+            3
           ]
         }
       ]
@@ -304,7 +338,9 @@
           "start": 112.28,
           "end": 112.92,
           "text": "What next?",
-          "blankIndexes": []
+          "blankIndexes": [
+            1
+          ]
         },
         {
           "start": 113.22,
@@ -354,7 +390,10 @@
           "start": 117.4,
           "end": 117.98,
           "text": "It's warm.",
-          "blankIndexes": []
+          "blankIndexes": [
+            0,
+            1
+          ]
         }
       ]
     },
@@ -366,14 +405,19 @@
           "start": 118.1,
           "end": 118.6,
           "text": "Okay, go to the back door.",
-          "blankIndexes": []
+          "blankIndexes": [
+            0,
+            4,
+            5
+          ]
         },
         {
           "start": 118.6,
           "end": 119.98,
           "text": "Well, another option.",
           "blankIndexes": [
-            1
+            1,
+            2
           ]
         }
       ]
@@ -387,7 +431,8 @@
           "end": 122.82,
           "text": "Geez, okay, settle on everyone.",
           "blankIndexes": [
-            2
+            2,
+            4
           ]
         },
         {
@@ -409,14 +454,19 @@
           "end": 124.9,
           "text": "Leave it, woman.",
           "blankIndexes": [
-            0
+            0,
+            2
           ]
         },
         {
           "start": 125.24,
           "end": 125.64,
           "text": "Get out of way.",
-          "blankIndexes": []
+          "blankIndexes": [
+            0,
+            1,
+            3
+          ]
         }
       ]
     },
@@ -428,14 +478,20 @@
           "start": 125.74,
           "end": 126.22,
           "text": "Go, go, go.",
-          "blankIndexes": []
+          "blankIndexes": [
+            0,
+            1,
+            2
+          ]
         },
         {
           "start": 126.32,
           "end": 127.72,
           "text": "No, things can be replaced, Phyllis.",
           "blankIndexes": [
-            1
+            1,
+            4,
+            5
           ]
         }
       ]
@@ -449,14 +505,18 @@
           "end": 130.44,
           "text": "People, human lives, however, can...",
           "blankIndexes": [
-            0
+            2
           ]
         },
         {
           "start": 135.0,
           "end": 136.76,
           "text": "This one's hot too!",
-          "blankIndexes": []
+          "blankIndexes": [
+            1,
+            2,
+            3
+          ]
         }
       ]
     },
@@ -469,14 +529,18 @@
           "end": 138.78,
           "text": "Okay, we're trapped everyone for himself!",
           "blankIndexes": [
-            2
+            2,
+            3,
+            5
           ]
         },
         {
           "start": 139.06,
           "end": 139.2,
           "text": "Okay.",
-          "blankIndexes": []
+          "blankIndexes": [
+            0
+          ]
         }
       ]
     },
@@ -488,13 +552,17 @@
           "start": 139.54,
           "end": 139.72,
           "text": "Let's go!",
-          "blankIndexes": []
+          "blankIndexes": [
+            0
+          ]
         },
         {
           "start": 140.24,
           "end": 140.54,
           "text": "Let's go!",
-          "blankIndexes": []
+          "blankIndexes": [
+            0
+          ]
         }
       ]
     },
@@ -514,7 +582,9 @@
           "start": 146.82,
           "end": 147.28,
           "text": "Okay!",
-          "blankIndexes": []
+          "blankIndexes": [
+            0
+          ]
         }
       ]
     },
@@ -527,7 +597,8 @@
           "end": 149.5,
           "text": "Procedure, procedure.",
           "blankIndexes": [
-            0
+            0,
+            1
           ]
         },
         {
@@ -549,7 +620,8 @@
           "end": 153.0,
           "text": "Where do we go, folks?",
           "blankIndexes": [
-            0
+            0,
+            4
           ]
         },
         {
@@ -557,7 +629,8 @@
           "end": 154.68,
           "text": "Use a what to cover the mouth?",
           "blankIndexes": [
-            4
+            4,
+            6
           ]
         }
       ]
@@ -570,13 +643,17 @@
           "start": 154.86,
           "end": 155.08,
           "text": "A what?",
-          "blankIndexes": []
+          "blankIndexes": [
+            1
+          ]
         },
         {
           "start": 155.48,
           "end": 156.32,
           "text": "A rag?",
-          "blankIndexes": []
+          "blankIndexes": [
+            1
+          ]
         }
       ]
     },
@@ -597,7 +674,9 @@
           "end": 160.26,
           "text": "Let's remember those procedures.",
           "blankIndexes": [
-            1
+            1,
+            2,
+            3
           ]
         }
       ]
@@ -618,7 +697,9 @@
           "start": 161.62,
           "end": 161.8,
           "text": "Okay.",
-          "blankIndexes": []
+          "blankIndexes": [
+            0
+          ]
         }
       ]
     },
@@ -631,7 +712,8 @@
           "end": 163.16,
           "text": "That's the wrong way.",
           "blankIndexes": [
-            0
+            0,
+            2
           ]
         },
         {
@@ -639,7 +721,8 @@
           "end": 164.26,
           "text": "We've already tried that.",
           "blankIndexes": [
-            1
+            1,
+            2
           ]
         }
       ]
@@ -661,7 +744,9 @@
           "end": 167.48,
           "text": "Exit points, exit points, people.",
           "blankIndexes": [
-            1
+            1,
+            3,
+            4
           ]
         }
       ]
@@ -705,7 +790,8 @@
           "end": 171.89,
           "text": "You're too heavy!",
           "blankIndexes": [
-            0
+            0,
+            2
           ]
         }
       ]
@@ -719,7 +805,8 @@
           "end": 173.41,
           "text": "I don't weigh 82 pounds!",
           "blankIndexes": [
-            2
+            2,
+            4
           ]
         },
         {
@@ -753,7 +840,7 @@
           "end": 197.02,
           "text": "Use the surge of fear and adrenaline to sharpen your decision-making.",
           "blankIndexes": [
-            2
+            8
           ]
         },
         {
@@ -774,7 +861,10 @@
           "start": 211.45,
           "end": 212.95,
           "text": "It's been a",
-          "blankIndexes": []
+          "blankIndexes": [
+            0,
+            1
+          ]
         }
       ]
     },
@@ -787,7 +877,8 @@
           "end": 239.83,
           "text": "test of our emergency preparedness.",
           "blankIndexes": [
-            3
+            3,
+            4
           ]
         },
         {
@@ -795,7 +886,8 @@
           "end": 242.43,
           "text": "There is no fire, it was only a simulation.",
           "blankIndexes": [
-            0
+            0,
+            8
           ]
         }
       ]
@@ -808,13 +900,19 @@
           "start": 242.93,
           "end": 243.37,
           "text": "What?",
-          "blankIndexes": []
+          "blankIndexes": [
+            0
+          ]
         },
         {
           "start": 243.67,
           "end": 245.15,
           "text": "Fire, not real.",
-          "blankIndexes": []
+          "blankIndexes": [
+            0,
+            1,
+            2
+          ]
         }
       ]
     },
@@ -827,7 +925,9 @@
           "end": 247.25,
           "text": "This was merely a training exercise.",
           "blankIndexes": [
-            2
+            2,
+            4,
+            5
           ]
         },
         {
@@ -848,7 +948,9 @@
           "start": 251.16,
           "end": 252.18,
           "text": "Oh, come on.",
-          "blankIndexes": []
+          "blankIndexes": [
+            1
+          ]
         },
         {
           "start": 252.2,
@@ -876,7 +978,9 @@
           "start": 254.62,
           "end": 255.58,
           "text": "No, no, no, no.",
-          "blankIndexes": []
+          "blankIndexes": [
+            2
+          ]
         }
       ]
     },
@@ -888,14 +992,19 @@
           "start": 255.66,
           "end": 256.24,
           "text": "You will not die.",
-          "blankIndexes": []
+          "blankIndexes": [
+            1,
+            2,
+            3
+          ]
         },
         {
           "start": 256.76,
           "end": 258.44,
           "text": "Stanley, Stanley, you will not die.",
           "blankIndexes": [
-            0
+            0,
+            1
           ]
         }
       ]
@@ -917,7 +1026,8 @@
           "end": 261.36,
           "text": "Paraki's president!",
           "blankIndexes": [
-            0
+            0,
+            1
           ]
         }
       ]
@@ -931,7 +1041,8 @@
           "end": 263.44,
           "text": "You are black, Stanley!",
           "blankIndexes": [
-            2
+            2,
+            3
           ]
         },
         {
@@ -939,7 +1050,9 @@
           "end": 264.6,
           "text": "I'm gonna give him mouth to mouth.",
           "blankIndexes": [
-            1
+            1,
+            4,
+            6
           ]
         }
       ]
@@ -953,7 +1066,8 @@
           "end": 266.1,
           "text": "No, no, no, no, don't give him mouth to mouth for this.",
           "blankIndexes": [
-            7
+            7,
+            9
           ]
         },
         {
@@ -961,7 +1075,7 @@
           "end": 267.4,
           "text": "You're gonna swallow his tongue.",
           "blankIndexes": [
-            0
+            2
           ]
         }
       ]

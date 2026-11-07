@@ -53,5 +53,16 @@
     "groupCount": 38,
     "sentenceCount": 75,
     "dataFile": "clips/the-godfather.json"
+  },
+  {
+    "id": "hello-clarice",
+    "url": "https://www.youtube.com/watch?v=afHQE1LlAfo",
+    "youtubeId": "afHQE1LlAfo",
+    "title": "Hello Clarice",
+    "durationSeconds": 293.41,
+    "groupCount": 67,
+    "sentenceCount": 134,
+    "dataFile": "clips/hello-clarice.json",
+    "level": "B1"
   }
 ]

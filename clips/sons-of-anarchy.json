@@ -15,7 +15,8 @@
           "end": 1.55,
           "text": "What happens now, Chris?",
           "blankIndexes": [
-            1
+            1,
+            3
           ]
         },
         {
@@ -23,7 +24,8 @@
           "end": 5.75,
           "text": "We settle with the Irish.",
           "blankIndexes": [
-            1
+            1,
+            4
           ]
         }
       ]
@@ -37,7 +39,8 @@
           "end": 17.52,
           "text": "How do we do that with the three dead bodies?",
           "blankIndexes": [
-            7
+            7,
+            9
           ]
         },
         {
@@ -59,7 +62,9 @@
           "end": 33.03,
           "text": "The smart plan would be that amount",
           "blankIndexes": [
-            1
+            1,
+            3,
+            6
           ]
         },
         {
@@ -81,7 +86,7 @@
           "end": 39.68,
           "text": "With some history, get into a beef thing leads to another.",
           "blankIndexes": [
-            2
+            8
           ]
         }
       ]
@@ -95,7 +100,8 @@
           "end": 67.88,
           "text": "I guess you had another vote.",
           "blankIndexes": [
-            1
+            1,
+            4
           ]
         },
         {
@@ -103,7 +109,8 @@
           "end": 68.84,
           "text": "I wasn't privy to.",
           "blankIndexes": [
-            1
+            1,
+            2
           ]
         }
       ]
@@ -116,7 +123,10 @@
           "start": 72.72,
           "end": 73.42,
           "text": "Yeah, we did.",
-          "blankIndexes": []
+          "blankIndexes": [
+            0,
+            2
+          ]
         },
         {
           "start": 77.83,
@@ -136,7 +146,9 @@
           "start": 93.72,
           "end": 94.12,
           "text": "Let's go.",
-          "blankIndexes": []
+          "blankIndexes": [
+            0
+          ]
         }
       ]
     },
@@ -148,7 +160,10 @@
           "start": 140.6,
           "end": 141.02,
           "text": "It's good.",
-          "blankIndexes": []
+          "blankIndexes": [
+            0,
+            1
+          ]
         }
       ]
     }

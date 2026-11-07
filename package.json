@@ -1,12 +1,14 @@
 {
   "name": "subscript",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "engines": {
     "node": ">=22.5.0"
   },
   "scripts": {
-    "start": "node server.js"
+    "start": "node --watch server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test test/runner.test.js"
   }
 }

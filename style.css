@@ -83,6 +83,7 @@ button { cursor: pointer; }
   background: #000;
   text-align: left;
 }
+.side-nav-item[hidden] { display: none; }
 .side-nav-icon {
   position: absolute;
   z-index: 2;
@@ -364,10 +365,15 @@ button { cursor: pointer; }
   justify-content: center;
   flex-shrink: 0;
   border-radius: 50%;
-  background: linear-gradient(135deg, #b99cff, #ff855c);
   color: #fff;
   font-weight: 800;
 }
+.avatar-color-violet { background: linear-gradient(135deg, #a78bfa, #ec4899); }
+.avatar-color-ocean { background: linear-gradient(135deg, #38bdf8, #2563eb); }
+.avatar-color-sunset { background: linear-gradient(135deg, #fb923c, #ef4444); }
+.avatar-color-mint { background: linear-gradient(135deg, #34d399, #0d9488); }
+.avatar-color-rose { background: linear-gradient(135deg, #fb7185, #be185d); }
+.avatar-color-slate { background: linear-gradient(135deg, #64748b, #1e293b); }
 .avatar-small { width: 28px; height: 28px; font-size: 12px; }
 .avatar-large { width: 44px; height: 44px; font-size: 17px; }
 .language-flag { font-size: 18px; line-height: 1; }
@@ -427,6 +433,38 @@ button { cursor: pointer; }
   height: 72px;
   font-size: 25px;
 }
+.avatar-preference {
+  margin: -4px 0 20px;
+  text-align: left;
+}
+.avatar-preference > label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.avatar-preference p {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.avatar-color-options {
+  display: flex;
+  gap: 9px;
+}
+.avatar-color-option {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 3px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform .15s ease, border-color .15s ease;
+}
+.avatar-color-option:hover { transform: scale(1.1); }
+.avatar-color-option.selected { border-color: var(--ink); box-shadow: 0 0 0 2px var(--bg-surface); }
 .profile-card .card__title {
   max-width: 270px;
   margin-top: 37px;

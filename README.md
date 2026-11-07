@@ -48,6 +48,12 @@ python batch_transcribe.py
 python transcribe.py --url "https://www.youtube.com/watch?v=VIDEO_ID" --title "Film Adı"
 ```
 
+Video indirme ve Whisper transkripsiyonu yalnızca içerik yöneticisinin
+yerel bilgisayarında çalıştırılır. Normal kullanıcılar video yüklemez veya
+Whisper çalıştırmaz; hazır klip kataloğundaki içerikleri YouTube oynatıcısı
+üzerinden kullanır. Bu nedenle `yt-dlp`, `faster-whisper` ve model cache'i
+yalnızca bu yerel admin ortamında bulunmalıdır.
+
 ### 3. Uygulamayı Başlatın
 
 Node.js API'si ve frontend'i birlikte başlatın (Node.js 22.5+):
@@ -73,6 +79,10 @@ Admin klip ekleme endpoint'i yalnızca bu e-posta ile giriş yapan kullanıcıya
 ```text
 POST /api/admin/clips
 ```
+
+Admin panelindeki otomatik YouTube işleme de yerel Node.js sunucusuna bağlıdır.
+Sunucu `localhost` üzerinde çalışıyorsa bu özellik yalnızca o bilgisayarda
+kullanılır; kullanıcıların normal uygulama akışı bu işlemden bağımsızdır.
 
 ### Auth ve yerel veri
 
