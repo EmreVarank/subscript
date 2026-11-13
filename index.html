@@ -13,7 +13,7 @@
     <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   </head>
   <body>
-    <div class="auth-backdrop open" id="authBackdrop">
+    <div class="auth-backdrop" id="authBackdrop">
       <section class="onboarding-shell" aria-live="polite">
         <div class="onboarding-intro">
           <div class="onboarding-showcase-layer showcase-layer-a" aria-hidden="true"></div>
@@ -74,6 +74,148 @@
         </div>
       </section>
     </div>
+
+    <!-- Sinematik Karşılama & Başlangıç Kütüphanesi (Yeni Kayıt Olanlar İçin) -->
+    <div class="cinematic-backdrop" id="cinematicOnboardingModal" aria-hidden="true">
+      <div class="cinematic-backdrop-ambient"></div>
+      <div class="cinematic-shell" role="dialog" aria-modal="true">
+        <button class="cinematic-close" id="closeCinematicBtn" type="button" aria-label="Kapat">×</button>
+
+        <!-- Stepper -->
+        <div class="cinematic-stepper">
+          <div class="cinematic-step-item active" data-step-indicator="1">
+            <span class="step-num">01</span>
+            <span class="step-text">Seviye</span>
+          </div>
+          <div class="cinematic-step-divider"></div>
+          <div class="cinematic-step-item" data-step-indicator="2">
+            <span class="step-num">02</span>
+            <span class="step-text">Favoriler</span>
+          </div>
+          <div class="cinematic-step-divider"></div>
+          <div class="cinematic-step-item" data-step-indicator="3">
+            <span class="step-num">03</span>
+            <span class="step-text">Başlangıç Klibi</span>
+          </div>
+        </div>
+
+        <!-- Adım 1: Seviye Seçimi -->
+        <div class="cinematic-step-pane active" id="cinematicStep1">
+          <p class="cinematic-eyebrow">İLK ADIM</p>
+          <h1 class="cinematic-title">Nereden başlamak istersiniz?</h1>
+          <p class="cinematic-desc">Kulağına ve hedeflerine en uygun klipleri eşleştirebilmemiz için İngilizce seviyeni seç.</p>
+          
+          <div class="cinematic-level-grid" id="cinematicLevelGrid">
+            <button type="button" class="cinematic-level-card" data-cinematic-level="A1">
+              <span class="level-tag">A1</span>
+              <div class="level-info">
+                <strong>Başlangıç</strong>
+                <p>Temel kelimeler, yavaş ve anlaşılır diyaloglar</p>
+              </div>
+            </button>
+            <button type="button" class="cinematic-level-card" data-cinematic-level="A2">
+              <span class="level-tag">A2</span>
+              <div class="level-info">
+                <strong>Temel</strong>
+                <p>Günlük basit konuşmalar, kısa ve net cümleler</p>
+              </div>
+            </button>
+            <button type="button" class="cinematic-level-card active" data-cinematic-level="B1">
+              <span class="level-tag">B1</span>
+              <div class="level-info">
+                <strong>Orta (Önerilen)</strong>
+                <p>Diziler, popüler sahneler ve doğal konuşma hızı</p>
+              </div>
+            </button>
+            <button type="button" class="cinematic-level-card" data-cinematic-level="B2">
+              <span class="level-tag">B2</span>
+              <div class="level-info">
+                <strong>Orta Üstü</strong>
+                <p>Hızlı konuşmalar, deyimler, espriler ve aksanlar</p>
+              </div>
+            </button>
+            <button type="button" class="cinematic-level-card" data-cinematic-level="C1">
+              <span class="level-tag">C1</span>
+              <div class="level-info">
+                <strong>İleri</strong>
+                <p>Doğal film dili, karmaşık diyaloglar ve sokak dili</p>
+              </div>
+            </button>
+          </div>
+
+          <div class="cinematic-actions">
+            <button type="button" class="cinematic-primary-btn" id="cinematicLevelNextBtn">
+              Devam et <span>→</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Adım 2: Favori Dizi / Film -->
+        <div class="cinematic-step-pane" id="cinematicStep2" hidden>
+          <p class="cinematic-eyebrow">KİŞİSELLEŞTİRME</p>
+          <h1 class="cinematic-title">Herhangi bir favori dizin veya filmin var mı?</h1>
+          <p class="cinematic-desc">En çok izlemekten keyif aldığın yapımları bizimle paylaş. Hangi dünyalarla pratik yapmak istediğini öğrenmek istiyoruz.</p>
+
+          <div class="cinematic-request-box">
+            <div class="cinematic-notice-badge">
+              <span class="notice-icon">✨</span>
+              <span>Talebe göre istek dizinizin / filminizin klip sayısı arttırılacaktır</span>
+            </div>
+
+            <div class="cinematic-input-wrap">
+              <label for="cinematicFavMediaInput">Favori dizi ya da filmlerin:</label>
+              <input type="text" id="cinematicFavMediaInput" placeholder="Örn: Breaking Bad, Peaky Blinders, The Office, Friends, Interstellar..." autocomplete="off" />
+            </div>
+          </div>
+
+          <div class="cinematic-actions">
+            <button type="button" class="cinematic-back-btn" id="cinematicFavBackBtn">← Geri</button>
+            <button type="button" class="cinematic-skip-btn" id="cinematicFavSkipBtn">Şimdilik geç</button>
+            <button type="button" class="cinematic-primary-btn" id="cinematicFavNextBtn">
+              Önerileri Gör <span>↗</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Adım 3: Önerilerimiz ve Genel Kitaplık -->
+        <div class="cinematic-step-pane" id="cinematicStep3" hidden>
+          <div class="cinematic-step3-head">
+            <div>
+              <p class="cinematic-eyebrow">SENİN İÇİN DERLEDİK</p>
+              <h1 class="cinematic-title">Hangi kliple başlamak istersin?</h1>
+              <p class="cinematic-desc"><strong id="cinematicChosenLevelTag">B1</strong> seviyen için önerilen klipler ve kütüphanemizdeki diğer parçalar.</p>
+            </div>
+            <button type="button" class="cinematic-back-btn" id="cinematicLibBackBtn">← Tercihleri Değiştir</button>
+          </div>
+
+          <!-- Önerilerimiz -->
+          <div class="cinematic-catalog-section">
+            <div class="cinematic-section-header">
+              <div class="header-left">
+                <span class="section-indicator">🔥</span>
+                <h2>Önerilerimiz</h2>
+                <small>Seviyene denk ve gelişimine uygun (+1, -1) klipler</small>
+              </div>
+            </div>
+            <div class="cinematic-cards-grid" id="cinematicRecommendedGrid"></div>
+          </div>
+
+          <!-- Genel Kitaplık -->
+          <div class="cinematic-catalog-section">
+            <div class="cinematic-section-header">
+              <div class="header-left">
+                <span class="section-indicator">📚</span>
+                <h2>Genel Kitaplık</h2>
+                <small>Kütüphanemizdeki tüm klipler</small>
+              </div>
+            </div>
+            <div class="cinematic-cards-grid" id="cinematicAllGrid"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
     <div class="login-backdrop" id="loginBackdrop" aria-hidden="true">
       <section class="login-card" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
         <button class="modal-close-button" type="button" id="closeLoginButton" aria-label="Giriş penceresini kapat">×</button>
@@ -290,26 +432,6 @@
           </div>
         </div>
       </header>
-
-      <section class="learn-hero" id="learnHero">
-        <div class="learn-hero-glow" aria-hidden="true"></div>
-        <div class="learn-hero-content">
-          <div class="learn-hero-trust">
-            <span class="learn-hero-avatars" aria-hidden="true"><i></i><i></i><i></i></span>
-            <span>Her gün kısa bir dinleme pratiği</span>
-          </div>
-          <h1>İngilizceyi<br /><em>gerçekten duy.</em></h1>
-          <p>Film, dizi ve şarkı klipleriyle kulağını doğal İngilizceye alıştır. Dinle, tamamla ve ilerle.</p>
-          <div class="learn-hero-actions">
-            <button type="button" class="learn-hero-start" id="heroStartButton">Çalışmaya başla <span>↗</span></button>
-            <button type="button" class="learn-hero-play" id="heroPlayButton" aria-label="Klibi oynat">▶</button>
-          </div>
-        </div>
-        <div class="learn-hero-meta">
-          <span><strong id="heroClipTitle">Bugünün klibi</strong><small>Dinleme laboratuvarı</small></span>
-          <span class="learn-hero-scroll">Aşağı kaydır <b>↓</b></span>
-        </div>
-      </section>
 
       <section class="lesson-head">
         <div>

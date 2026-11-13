@@ -645,17 +645,18 @@ function showLevelPicker() {
 async function saveLevel(level) {
   try {
     localStorage.setItem("subscript_level", level);
+    if ($("levelBackdrop")) $("levelBackdrop").classList.remove("open");
     if (!authToken) {
-      $("levelBackdrop").classList.remove("open");
-      window.location.reload();
+      updateProfileUI();
       return;
     }
     const result = await apiRequest("/api/profile/level", { method: "POST", body: JSON.stringify({ level }) });
-    authUser = result.user;
-    $("levelBackdrop").classList.remove("open");
-    window.location.reload();
+    if (result?.user) {
+      authUser = result.user;
+    }
+    updateProfileUI();
   } catch (error) {
-    $("authError").textContent = error.message;
+    if ($("authError")) $("authError").textContent = error.message;
   }
 }
 
@@ -966,7 +967,7 @@ function showSection(section, updateUrl = true) {
   $("profileView").hidden = !isProfile;
   $("settingsView").hidden = !isSettings;
   $("adminView").hidden = !isAdmin;
-  $("learnHero").hidden = !isLearn;
+  if ($("learnHero")) $("learnHero").hidden = !isLearn;
   document.querySelector(".lesson-head").hidden = !isLearn;
   document.querySelector(".main-layout").hidden = !isLearn;
   $("libraryTriggerBtn").hidden = !isLearn;
@@ -1029,12 +1030,20 @@ async function ensureLearnView() {
   learnViewLoading = (async () => {
     await loadCatalog();
     const params = new URLSearchParams(window.location.search);
-    const dataFile = params.get("data") || globalCatalog[0]?.id;
-    if (!dataFile) {
-      document.body.innerHTML = "<p style='padding:2rem'>Henüz hiç klip eklenmemiş.</p>";
-      return;
+    const isNewUser = sessionStorage.getItem("subscript_is_new_user") === "1" ||
+      (authToken && authUser && !authUser.level && localStorage.getItem("subscript_onboarding_completed") !== "1");
+
+    if (isNewUser) {
+      // Yeni kayıt oldu: Sinematik karşılama ve klip seçme ekranını aç
+      openCinematicOnboarding();
+    } else {
+      const dataFile = params.get("data") || localStorage.getItem("subscript_last_clip") || globalCatalog[0]?.id;
+      if (!dataFile) {
+        document.body.innerHTML = "<p style='padding:2rem'>Henüz hiç klip eklenmemiş.</p>";
+        return;
+      }
+      await loadClip(dataFile);
     }
-    await loadClip(dataFile);
     learnViewLoaded = true;
   })().finally(() => {
     learnViewLoading = null;
@@ -1576,12 +1585,13 @@ async function switchClip(dataFile) {
 // ─── Data Loading ─────────────────────────────────────────────────────────────
 async function loadClip(dataFile) {
   currentDataFile = dataFile;
+  localStorage.setItem("subscript_last_clip", dataFile);
   const data = await apiRequest(`/api/clips/${encodeURIComponent(dataFile)}`);
 
   groups = data.groups;
   $("clipTitle").textContent = data.title;
-  $("heroClipTitle").textContent = data.title;
-  $("learnHero").style.setProperty("--hero-image", `url("https://img.youtube.com/vi/${data.youtubeId}/maxresdefault.jpg")`);
+  if ($("heroClipTitle")) $("heroClipTitle").textContent = data.title;
+  if ($("learnHero")) $("learnHero").style.setProperty("--hero-image", `url("https://img.youtube.com/vi/${data.youtubeId}/maxresdefault.jpg")`);
   
   const catalogItem = globalCatalog.find((c) => c.id === dataFile);
   const level = (catalogItem && catalogItem.level) || data.level || "B1";
@@ -1621,6 +1631,7 @@ async function init() {
     }
     return;
   }
+  setupCinematicOnboarding();
   await ensureLearnView();
   // Event listeners for Library
   if ($("libraryTriggerBtn")) $("libraryTriggerBtn").addEventListener("click", openLibraryModal);
@@ -1631,14 +1642,216 @@ async function init() {
       if (e.target === $("libraryModal")) closeLibraryModal();
     });
   }
-  $("heroStartButton").addEventListener("click", () => {
-    $("mainLayout").scrollIntoView({ behavior: "smooth", block: "start" });
-  });
-  $("heroPlayButton").addEventListener("click", () => {
-    $("mainLayout").scrollIntoView({ behavior: "smooth", block: "start" });
-    play(true);
+  if ($("heroStartButton")) {
+    $("heroStartButton").addEventListener("click", () => {
+      $("mainLayout").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+  if ($("heroPlayButton")) {
+    $("heroPlayButton").addEventListener("click", () => {
+      $("mainLayout").scrollIntoView({ behavior: "smooth", block: "start" });
+      play(true);
+    });
+  }
+
+}
+
+// ─── Sinematik Karşılama & Başlangıç Kütüphanesi ─────────────────────────────
+const LEVEL_RANKS = { "A1": 0, "A2": 1, "B1": 2, "B2": 3, "C1": 4 };
+let cinematicSelectedLevel = "B1";
+
+function setupCinematicOnboarding() {
+  const modal = $("cinematicOnboardingModal");
+  if (!modal) return;
+
+  const step1 = $("cinematicStep1");
+  const step2 = $("cinematicStep2");
+  const step3 = $("cinematicStep3");
+  const closeBtn = $("closeCinematicBtn");
+  const levelCards = document.querySelectorAll("[data-cinematic-level]");
+  const levelNextBtn = $("cinematicLevelNextBtn");
+  const favNextBtn = $("cinematicFavNextBtn");
+  const favBackBtn = $("cinematicFavBackBtn");
+  const favSkipBtn = $("cinematicFavSkipBtn");
+  const libBackBtn = $("cinematicLibBackBtn");
+  const favInput = $("cinematicFavMediaInput");
+
+  function setStep(stepNum) {
+    if (step1) step1.hidden = stepNum !== 1;
+    if (step2) step2.hidden = stepNum !== 2;
+    if (step3) step3.hidden = stepNum !== 3;
+
+    document.querySelectorAll(".cinematic-step-item").forEach((item) => {
+      const num = Number(item.dataset.stepIndicator);
+      item.classList.toggle("active", num === stepNum);
+    });
+
+    if (stepNum === 2 && favInput) {
+      window.setTimeout(() => favInput.focus(), 120);
+    }
+    if (stepNum === 3) {
+      renderCinematicCatalog(cinematicSelectedLevel);
+    }
+  }
+
+  levelCards.forEach((card) => {
+    card.addEventListener("click", () => {
+      levelCards.forEach((c) => c.classList.remove("active"));
+      card.classList.add("active");
+      cinematicSelectedLevel = card.dataset.cinematicLevel || "B1";
+    });
   });
 
+  if (levelNextBtn) {
+    levelNextBtn.addEventListener("click", () => setStep(2));
+  }
+
+  if (favBackBtn) favBackBtn.addEventListener("click", () => setStep(1));
+  if (libBackBtn) libBackBtn.addEventListener("click", () => setStep(2));
+
+  async function finishStep2(skipMedia) {
+    const favMedia = skipMedia ? "" : (favInput ? favInput.value.trim() : "");
+    if (favMedia) {
+      try {
+        apiRequest("/api/profile/favorite-media", {
+          method: "POST",
+          body: JSON.stringify({ media: favMedia })
+        }).catch(() => {});
+      } catch {}
+    }
+    if (cinematicSelectedLevel) {
+      try {
+        saveLevel(cinematicSelectedLevel).catch(() => {});
+      } catch {}
+    }
+    setStep(3);
+  }
+
+  if (favNextBtn) favNextBtn.addEventListener("click", () => finishStep2(false));
+  if (favSkipBtn) favSkipBtn.addEventListener("click", () => finishStep2(true));
+
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      closeCinematicOnboarding();
+      if (!currentDataFile && globalCatalog.length) {
+        loadClip(globalCatalog[0].id);
+      }
+    });
+  }
+}
+
+function openCinematicOnboarding() {
+  const modal = $("cinematicOnboardingModal");
+  if (!modal) return;
+  modal.classList.add("open");
+  modal.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+
+  if (authUser?.level) {
+    cinematicSelectedLevel = authUser.level;
+    document.querySelectorAll("[data-cinematic-level]").forEach((c) => {
+      c.classList.toggle("active", c.dataset.cinematicLevel === authUser.level);
+    });
+  }
+}
+
+function closeCinematicOnboarding() {
+  const modal = $("cinematicOnboardingModal");
+  if (!modal) return;
+  modal.classList.remove("open");
+  modal.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+}
+
+async function renderCinematicCatalog(userLevel) {
+  const chosenTag = $("cinematicChosenLevelTag");
+  if (chosenTag) chosenTag.textContent = userLevel;
+
+  const recGrid = $("cinematicRecommendedGrid");
+  const allGrid = $("cinematicAllGrid");
+  if (!recGrid || !allGrid) return;
+
+  if (!globalCatalog || !globalCatalog.length) {
+    try {
+      await loadCatalog();
+    } catch {}
+  }
+
+  recGrid.innerHTML = "";
+  allGrid.innerHTML = "";
+
+  const userRank = LEVEL_RANKS[userLevel] ?? 2;
+  const recommended = [];
+  const allClips = [...globalCatalog];
+
+  globalCatalog.forEach((clip) => {
+    const clipLevel = clip.level || "B1";
+    const clipRank = LEVEL_RANKS[clipLevel] ?? 2;
+    const diff = clipRank - userRank;
+
+    if (Math.abs(diff) <= 1) {
+      recommended.push({ clip, diff });
+    }
+  });
+
+  recommended.sort((a, b) => Math.abs(a.diff) - Math.abs(b.diff));
+
+  function createCard(clip, badgeText, badgeClass) {
+    const el = document.createElement("div");
+    el.className = "cinematic-clip-item";
+    el.setAttribute("role", "button");
+    el.setAttribute("tabindex", "0");
+    el.innerHTML = `
+      <div class="cinematic-clip-thumb">
+        <img src="https://img.youtube.com/vi/${clip.youtubeId}/mqdefault.jpg" alt="${clip.title}" loading="lazy" />
+        <span class="cinematic-clip-badge ${badgeClass}">${badgeText}</span>
+      </div>
+      <div class="cinematic-clip-meta">
+        <strong>${clip.title}</strong>
+        <small>${clip.level || "B1"} · ${clip.sentenceCount || clip.groupCount || "10+"} parça</small>
+        <div class="cinematic-clip-btn">
+          <span>Bu kliple başla</span>
+          <span>↗</span>
+        </div>
+      </div>
+    `;
+
+    const selectClip = async () => {
+      closeCinematicOnboarding();
+      localStorage.setItem("subscript_onboarding_completed", "1");
+      sessionStorage.removeItem("subscript_is_new_user");
+      await loadClip(clip.id);
+      const url = new URL(window.location);
+      url.searchParams.set("data", clip.id);
+      window.history.replaceState({}, "", url);
+    };
+
+    el.addEventListener("click", selectClip);
+    el.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        selectClip();
+      }
+    });
+    return el;
+  }
+
+  recommended.forEach(({ clip, diff }) => {
+    let badgeText = `${clip.level || "B1"} · Tam Seviyen`;
+    let badgeClass = "match";
+    if (diff === 1) {
+      badgeText = `${clip.level} · Bir Tık Zorlayıcı (+1)`;
+      badgeClass = "challenge";
+    } else if (diff === -1) {
+      badgeText = `${clip.level} · Rahat Başlangıç (-1)`;
+      badgeClass = "easy";
+    }
+    recGrid.appendChild(createCard(clip, badgeText, badgeClass));
+  });
+
+  allClips.forEach((clip) => {
+    allGrid.appendChild(createCard(clip, clip.level || "B1", ""));
+  });
 }
 
 // ─── YouTube IFrame API ───────────────────────────────────────────────────────

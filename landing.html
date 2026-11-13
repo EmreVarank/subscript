@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/landing.css" />
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
   </head>
   <body>
     <main>
@@ -22,14 +24,14 @@
             <a href="#library">Klipler</a>
             <a href="#levels">Seviyeler</a>
           </div>
-          <a class="landing-login" href="/ogren">Giriş yap <span>↗</span></a>
+          <button class="landing-login" id="landingLoginBtn" type="button">Giriş yap <span>↗</span></button>
         </nav>
         <div class="landing-hero-copy">
           <p class="landing-kicker">İNGİLİZCEYİ KULAĞINLA ÖĞREN</p>
           <h1>Dil öğrenme yolculuğunu <em>favorilerinle</em> eğlenceli hale getir.</h1>
           <p class="landing-lead">Dizi, film ve şarkı kliplerini dinle. Duyduğunu tamamla. Gerçek İngilizceyi kendi dünyanda öğren.</p>
           <div class="landing-actions">
-            <a class="landing-primary" href="/ogren">Ücretsiz başla <span>↗</span></a>
+            <button class="landing-primary" id="heroStartBtn" type="button" data-auth-trigger="register">Ücretsiz başla <span>↗</span></button>
             <a class="landing-play" href="#how-it-works" aria-label="Nasıl çalıştığını gör">▶</a>
           </div>
         </div>
@@ -43,7 +45,7 @@
         <div class="section-label">01 / NASIL ÇALIŞIR?</div>
         <div class="intro-grid">
           <h2>İngilizce ders gibi değil, <em>hikâye gibi</em> hissetsin.</h2>
-          <p>subscript., sevdiğin sahneleri aktif bir dinleme pratiğine dönüştürür. Kısa parçaları dinler, eksik kelimeleri tamamlarsın ve kulağın doğal konuşma hızına alışır.</p>
+          <p>subscript, sevdiğin sahneleri aktif bir dinleme pratiğine dönüştürür. Kısa parçaları dinler, eksik kelimeleri tamamlarsın ve kulağın doğal konuşma hızına alışır.</p>
         </div>
         <div class="steps-grid">
           <article><span>01</span><h3>Bir klip seç</h3><p>Sevdiğin dizi, film veya şarkıdan bir parça aç.</p></article>
@@ -65,7 +67,7 @@
           <div class="section-label">03 / SENİN TEMPON</div>
           <h2>A1’den C1’e kadar<br /><em>yanında.</em></h2>
           <p>Başlangıç seviyesinden ileri seviyeye kadar, sana uygun zorlukta kliplerle ilerle. Her gün birkaç dakika bile fark yaratır.</p>
-          <a class="landing-primary" href="/ogren">Kendi yolculuğuna başla <span>↗</span></a>
+          <button class="landing-primary" type="button" data-auth-trigger="register">Kendi yolculuğuna başla <span>↗</span></button>
         </div>
         <div class="level-orbit" aria-label="Desteklenen seviyeler">
           <span>A1</span><span>A2</span><span>B1</span><span>B2</span><span>C1</span>
@@ -76,10 +78,82 @@
       <section class="landing-cta">
         <p class="landing-kicker">KULAĞINI BUGÜN EĞİT</p>
         <h2>Favori sahnen,<br /><em>yeni başlangıcın.</em></h2>
-        <a class="landing-primary" href="/ogren">Ücretsiz başla <span>↗</span></a>
+        <button class="landing-primary" type="button" data-auth-trigger="register">Ücretsiz başla <span>↗</span></button>
       </section>
     </main>
-    <footer class="landing-footer"><a class="landing-brand" href="/">subscript<span>.</span></a><span>İngilizceyi gerçekten duy.</span><span>© 2026</span></footer>
+
+    <footer class="landing-footer">
+      <a class="landing-brand" href="/">subscript<span>.</span></a>
+      <span>İngilizceyi gerçekten duy.</span>
+      <span>© 2026</span>
+    </footer>
+
+    <!-- Giriş Yap & Kayıt Ol Modal Penceresi -->
+    <div class="landing-auth-backdrop" id="landingAuthBackdrop" aria-hidden="true">
+      <div class="landing-auth-card" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
+        <button class="landing-auth-close" id="closeAuthModal" type="button" aria-label="Kapat">×</button>
+        
+        <div class="landing-auth-header">
+          <div class="landing-auth-brand">subscript<span>.</span></div>
+          <h2 id="authModalTitle">Kaldığın yerden devam et.</h2>
+          <p id="authModalSubtitle">İlerlemeni ve favori kliplerini kaydetmek için giriş yap.</p>
+        </div>
+
+        <div class="landing-auth-tabs">
+          <button type="button" class="landing-auth-tab active" id="tabLogin">Giriş Yap</button>
+          <button type="button" class="landing-auth-tab" id="tabRegister">Kayıt Ol</button>
+        </div>
+
+        <form id="landingAuthForm" novalidate>
+          <div class="landing-form-group" id="groupName" hidden>
+            <label for="authName">Ad Soyad</label>
+            <input id="authName" type="text" autocomplete="name" placeholder="Adın" />
+            <p class="landing-field-error" id="nameError" role="alert"></p>
+          </div>
+
+          <div class="landing-form-group" id="groupEmail">
+            <label for="authEmail">E-posta</label>
+            <input id="authEmail" type="email" autocomplete="email" placeholder="ornek@mail.com" />
+            <p class="landing-field-error" id="emailError" role="alert"></p>
+          </div>
+
+          <div class="landing-form-group" id="groupPassword">
+            <div class="landing-label-row">
+              <label for="authPassword">Şifre</label>
+              <button type="button" class="landing-text-btn" id="togglePasswordBtn">Göster</button>
+            </div>
+            <input id="authPassword" type="password" autocomplete="current-password" placeholder="En az 8 karakter" />
+            <p class="landing-field-error" id="passwordError" role="alert"></p>
+          </div>
+
+          <div class="landing-form-row" id="groupRemember">
+            <label class="landing-checkbox-label">
+              <input type="checkbox" id="authRemember" checked />
+              <span>Beni hatırla</span>
+            </label>
+          </div>
+
+          <p class="landing-submit-error" id="authSubmitError" role="alert"></p>
+
+          <button class="landing-auth-submit" id="authSubmitBtn" type="submit">
+            <span id="authSubmitText">Giriş yap</span>
+          </button>
+        </form>
+
+        <div class="landing-auth-divider"><span>veya</span></div>
+
+        <button class="landing-google-btn" id="landingGoogleBtn" type="button">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.35 12.27c0-.72-.06-1.42-.18-2.09H12v3.96h5.24a4.48 4.48 0 0 1-1.94 2.94v2.45h3.14c1.84-1.69 2.91-4.18 2.91-7.26z"/><path fill="#34A853" d="M12 21.77c2.63 0 4.84-.87 6.45-2.34l-3.14-2.45c-.87.58-1.98.92-3.31.92-2.54 0-4.69-1.72-5.46-4.03H3.29v2.53A9.74 9.74 0 0 0 12 21.77z"/><path fill="#FBBC05" d="M6.54 13.87a5.85 5.85 0 0 1 0-3.74V7.6H3.29a9.78 9.78 0 0 0 0 8.8l3.25-2.53z"/><path fill="#EA4335" d="M12 6.1c1.43 0 2.71.49 3.72 1.45l2.79-2.79C16.84 3.2 14.63 2.23 12 2.23a9.74 9.74 0 0 0-8.71 5.37l3.25 2.53C7.31 7.82 9.46 6.1 12 6.1z"/></svg>
+          Google ile devam et
+        </button>
+
+        <div class="landing-auth-footer-prompt">
+          <span id="authPromptText">Henüz hesabın yok mu?</span>
+          <button type="button" class="landing-switch-mode-btn" id="authSwitchModeBtn">Kayıt ol</button>
+        </div>
+      </div>
+    </div>
+
     <script src="/landing.js"></script>
   </body>
 </html>

@@ -733,6 +733,28 @@ async function api(req, res, url) {
     return send(res, 200, { user: publicUser(updatedUser) });
   }
 
+  // ── POST /api/profile/favorite-media ───────────────────────────────────────
+  if (req.method === "POST" && url.pathname === "/api/profile/favorite-media") {
+    const body = await readBody(req);
+    const media = String(body.media || "").trim();
+    const user = currentUser(req);
+    if (media) {
+      const requestsFile = join(dataDir, "media_requests.json");
+      let requests = [];
+      try {
+        if (existsSync(requestsFile)) requests = JSON.parse(readFileSync(requestsFile, "utf8"));
+      } catch {}
+      requests.push({
+        media,
+        userId: user?.id || null,
+        userEmail: user?.email || null,
+        date: new Date().toISOString()
+      });
+      writeFileSync(requestsFile, JSON.stringify(requests, null, 2), "utf8");
+    }
+    return send(res, 200, { ok: true, saved: media });
+  }
+
   // ── POST /api/admin/clips ─────────────────────────────────────────────────
   if (req.method === "POST" && url.pathname === "/api/admin/clips") {
     const user = currentUser(req);
