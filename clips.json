@@ -64,5 +64,16 @@
     "sentenceCount": 134,
     "dataFile": "clips/hello-clarice.json",
     "level": "B1"
+  },
+  {
+    "id": "oz",
+    "url": "https://www.youtube.com/watch?v=0yWd88dwxJs&list=PLn7dNTyN3MmWkQfcJfhduwF0meaV1e4J0&index=34",
+    "youtubeId": "0yWd88dwxJs",
+    "title": "Oz",
+    "durationSeconds": 75.55,
+    "groupCount": 9,
+    "sentenceCount": 17,
+    "dataFile": "clips/oz.json",
+    "level": "B1"
   }
 ]

@@ -679,6 +679,35 @@ async function ensureAuthenticated() {
 }
 
 function setupAuth() {
+  const showcaseClips = [
+    { title: "Breaking Bad", youtubeId: "MPYlxeG-8_w" },
+    { title: "Sons of Anarchy", youtubeId: "661f6PkKOL0" },
+    { title: "The Office", youtubeId: "gO8N3L_aERg" },
+    { title: "Game of Thrones", youtubeId: "oUjaljMMy2M" },
+    { title: "The Godfather", youtubeId: "4m8f8dLa_ig" }
+  ];
+  const showcaseLayers = [
+    document.querySelector(".showcase-layer-a"),
+    document.querySelector(".showcase-layer-b")
+  ];
+  let showcaseIndex = 0;
+  let activeShowcaseLayer = 0;
+  const showNextShowcaseClip = () => {
+    if (!showcaseLayers[0] || !showcaseLayers[1]) return;
+    const clip = showcaseClips[showcaseIndex % showcaseClips.length];
+    const nextLayer = showcaseLayers[activeShowcaseLayer === 0 ? 1 : 0];
+    nextLayer.style.backgroundImage = `url("https://img.youtube.com/vi/${clip.youtubeId}/maxresdefault.jpg")`;
+    nextLayer.classList.add("is-visible");
+    showcaseLayers[activeShowcaseLayer].classList.remove("is-visible");
+    activeShowcaseLayer = activeShowcaseLayer === 0 ? 1 : 0;
+    showcaseIndex += 1;
+  };
+  if (showcaseLayers[0] && showcaseLayers[1]) {
+    showcaseLayers[0].style.backgroundImage = `url("https://img.youtube.com/vi/${showcaseClips[0].youtubeId}/maxresdefault.jpg")`;
+    showcaseLayers[0].classList.add("is-visible");
+    window.setInterval(showNextShowcaseClip, 2000);
+  }
+
   const showStep = (step) => {
     ["welcomeStep", "profileStep"].forEach((id) => {
       const element = $(id);
@@ -771,6 +800,11 @@ function setLoginMode(mode) {
   $("loginRegisterHint").textContent = isRegister ? "Giriş yap" : "Ücretsiz başla";
 }
 
+function openRegisterModal() {
+  openLoginModal();
+  setLoginMode("register");
+}
+
 async function submitLogin(event) {
   event.preventDefault();
   if (authToken) {
@@ -826,22 +860,30 @@ async function loadUserStats() {
 }
 
 function updateProfileUI() {
-  const storedName = localStorage.getItem("subscript_name");
-  const name = authUser?.name || storedName || "Misafir";
-  const level = authUser?.level || localStorage.getItem("subscript_level");
+  const isAuthenticated = Boolean(authToken && authUser);
+  const name = isAuthenticated ? authUser.name : "Misafir";
+  const level = isAuthenticated ? authUser.level : "";
   const language = localStorage.getItem("subscript_language") || "en";
   const flags = { en: "🇬🇧", de: "🇩🇪", fr: "🇫🇷", es: "🇪🇸" };
   const initial = getInitials(name);
-  applyAvatarStyle(initial);
-  $("headerProfileName").textContent = name;
+  document.querySelectorAll(".avatar").forEach((avatar) => {
+    avatar.hidden = !isAuthenticated;
+  });
+  if (isAuthenticated) applyAvatarStyle(initial);
+  $("headerProfileName").textContent = isAuthenticated ? name : "Giriş yap";
   $("menuProfileName").textContent = name;
-  $("menuProfileLevel").textContent = level ? `İngilizce · ${level}` : "İngilizce · Seviye seçilmedi";
-  $("profileLogin").hidden = Boolean(authUser);
-  $("profileLogout").hidden = !authUser;
-  if ($("adminNavItem")) $("adminNavItem").hidden = !authUser?.isAdmin;
-  if ($("profilePageAvatar")) $("profilePageAvatar").textContent = initial;
+  $("menuProfileLevel").textContent = level ? `İngilizce · ${level}` : "Giriş yaparak profilini görüntüle";
+  $("profileIdentityCard").hidden = !isAuthenticated;
+  document.querySelectorAll("[data-profile-action]").forEach((button) => {
+    button.hidden = !isAuthenticated;
+  });
+  $("profileLogin").hidden = isAuthenticated;
+  $("profileRegister").hidden = isAuthenticated;
+  $("profileLogout").hidden = !isAuthenticated;
+  if ($("profileNavItem")) $("profileNavItem").hidden = !isAuthenticated;
+  if ($("adminNavItem")) $("adminNavItem").hidden = !isAuthenticated || !authUser.isAdmin;
   if ($("profilePageName")) $("profilePageName").textContent = name;
-  if ($("profilePageEmail")) $("profilePageEmail").textContent = authUser?.email || "Misafir olarak devam ediyorsun";
+  if ($("profilePageEmail")) $("profilePageEmail").textContent = isAuthenticated ? authUser.email : "Misafir olarak devam ediyorsun";
   if ($("profilePageLevel")) $("profilePageLevel").textContent = level ? `İngilizce · ${level}` : "Seviye seçilmedi";
   if ($("profileLevel")) $("profileLevel").textContent = level || "Seçilmedi";
   if ($("profileLanguage")) $("profileLanguage").textContent = `${flags[language] || flags.en} İngilizce`;
@@ -856,23 +898,58 @@ function getInitials(name) {
 
 function applyAvatarStyle(initials) {
   const color = authUser?.avatarColor || localStorage.getItem("subscript_avatar_color") || "violet";
+  const avatarStyle = authUser?.avatarStyle || "lorelei";
+  const avatarSeed = authUser?.avatarSeed || authUser?.name || initials || "subscript";
+  const avatarUrl = buildDicebearUrl(avatarStyle, avatarSeed);
   document.querySelectorAll(".avatar").forEach((avatar) => {
-    avatar.textContent = initials;
+    avatar.replaceChildren();
     avatar.classList.remove("avatar-color-violet", "avatar-color-ocean", "avatar-color-sunset", "avatar-color-mint", "avatar-color-rose", "avatar-color-slate");
     avatar.classList.add(`avatar-color-${color}`);
+    const image = document.createElement("img");
+    image.className = "avatar-image";
+    image.src = avatarUrl;
+    image.alt = `${avatarSeed} avatarı`;
+    image.addEventListener("error", () => {
+      image.remove();
+      avatar.textContent = initials;
+    }, { once: true });
+    avatar.append(image);
   });
+}
+
+function buildDicebearUrl(style, seed) {
+  return `https://api.dicebear.com/10.x/${encodeURIComponent(style)}/svg?seed=${encodeURIComponent(seed)}&radius=50&backgroundType=gradientLinear`;
 }
 
 function routeForSection(section) {
   if (section === "profile") return "/profil";
   if (section === "admin") return "/admin";
+  if (section === "settings") return `/settings/${settingsPageForPath(window.location.pathname)}`;
   return "/ogren";
 }
 
 function sectionForPath(pathname) {
   if (pathname === "/profil") return "profile";
   if (pathname === "/admin") return "admin";
+  if (pathname === "/settings" || pathname.startsWith("/settings/")) return "settings";
   return "learn";
+}
+
+function settingsPageForPath(pathname) {
+  const page = pathname.split("/")[2];
+  return ["account", "profile", "courses"].includes(page) ? page : "account";
+}
+
+function showSettingsPage(page = settingsPageForPath(window.location.pathname)) {
+  const normalizedPage = ["account", "profile", "courses"].includes(page) ? page : "account";
+  document.querySelectorAll("[data-settings-page]").forEach((view) => {
+    view.hidden = view.dataset.settingsPage !== normalizedPage;
+  });
+  document.querySelectorAll("[data-settings-link]").forEach((link) => {
+    link.classList.toggle("active", link.dataset.settingsLink === normalizedPage);
+  });
+  const titles = { account: "Hesap", profile: "Profil", courses: "Kurslar" };
+  if ($("settingsPageTitle")) $("settingsPageTitle").textContent = titles[normalizedPage];
 }
 
 function showSection(section, updateUrl = true) {
@@ -882,22 +959,28 @@ function showSection(section, updateUrl = true) {
   const isProfile = section === "profile";
   const isLearn = section === "learn";
   const isAdmin = section === "admin";
+  const isSettings = section === "settings";
   document.querySelectorAll(".side-nav-item").forEach((navItem) => {
     navItem.classList.toggle("active", navItem.dataset.section === section);
   });
   $("profileView").hidden = !isProfile;
+  $("settingsView").hidden = !isSettings;
   $("adminView").hidden = !isAdmin;
+  $("learnHero").hidden = !isLearn;
   document.querySelector(".lesson-head").hidden = !isLearn;
   document.querySelector(".main-layout").hidden = !isLearn;
   $("libraryTriggerBtn").hidden = !isLearn;
   const headerTitle = document.querySelector(".header-context strong");
-  if (headerTitle) headerTitle.textContent = isProfile ? "Profil" : isAdmin ? "Admin" : "Öğren";
+  if (headerTitle) headerTitle.textContent = isProfile ? "Profil" : isAdmin ? "Admin" : isSettings ? "Ayarlar" : "Öğren";
   if (isProfile) { updateProfileUI(); loadUserStats(); }
+  if (isSettings) { updateProfileUI(); showSettingsPage(); }
   if (isAdmin) loadAdminView();
   if (isLearn) ensureLearnView();
   if (updateUrl && window.location.pathname !== routeForSection(section)) {
     const url = new URL(window.location);
-    url.pathname = routeForSection(section);
+    url.pathname = section === "settings"
+      ? `/settings/${settingsPageForPath(window.location.pathname)}`
+      : routeForSection(section);
     window.history.pushState({ section }, "", url);
   }
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -960,6 +1043,13 @@ async function ensureLearnView() {
 }
 
 function setupNavigation() {
+  const settingsView = $("settingsView");
+  const appContent = document.querySelector(".app-content");
+  const appHeader = document.querySelector(".app-header");
+  if (settingsView && appContent && appHeader && settingsView.parentElement !== appContent) {
+    appHeader.after(settingsView);
+  }
+
   updateProfileUI();
   applyTheme(localStorage.getItem("subscript_theme") || "light");
   document.querySelectorAll('input[name="theme"]').forEach((input) => {
@@ -969,10 +1059,15 @@ function setupNavigation() {
     });
   });
   $("headerProfileButton").addEventListener("click", () => {
+    if (!authToken || !authUser) {
+      openLoginModal();
+      return;
+    }
     const menu = $("profileMenu");
     menu.hidden = !menu.hidden;
   });
   $("profileLogin").addEventListener("click", openLoginModal);
+  $("profileRegister").addEventListener("click", openRegisterModal);
   $("closeLoginButton").addEventListener("click", closeLoginModal);
   $("loginBackdrop").addEventListener("click", (event) => {
     if (event.target === $("loginBackdrop")) closeLoginModal();
@@ -1118,16 +1213,16 @@ function setupNavigation() {
       }
       const section = item.dataset.section || item.dataset.profileAction;
       $("profileMenu").hidden = true;
-      if (section === "learn" || section === "profile" || section === "admin") {
+      if (section === "settings") {
+        openSettingsModal("account");
+      } else if (section === "learn" || section === "profile" || section === "admin") {
         showSection(section);
       }
     });
   });
   window.addEventListener("popstate", () => showSection(sectionForPath(window.location.pathname), false));
-  // ── Ayarlar Modalı Yönetimi ───────────────────────────────────────────────
-  const settingsBackdrop = $("settingsBackdrop");
-
-  const openSettingsModal = () => {
+  // ── Ayarlar route yönetimi ────────────────────────────────────────────────
+  const openSettingsModal = (page = "account") => {
     if (!authToken) {
       openLoginModal();
       return;
@@ -1137,6 +1232,11 @@ function setupNavigation() {
     document.querySelectorAll("[data-avatar-color]").forEach((button) => {
       button.classList.toggle("selected", button.dataset.avatarColor === (authUser?.avatarColor || "violet"));
     });
+    if ($("avatarSeedInput")) $("avatarSeedInput").value = authUser?.avatarSeed || authUser?.name || "";
+    document.querySelectorAll("[data-avatar-style]").forEach((button) => {
+      button.classList.toggle("selected", button.dataset.avatarStyle === (authUser?.avatarStyle || "lorelei"));
+    });
+    updateAvatarGeneratorPreview();
     $("settingsCurrentPass").value = "";
     $("settingsNewPass").value = "";
     $("settingsPassMsg").textContent = "";
@@ -1153,22 +1253,11 @@ function setupNavigation() {
       upBtn.disabled = plan === "PRO";
     }
 
-    settingsBackdrop.classList.add("open");
-    settingsBackdrop.setAttribute("aria-hidden", "false");
+    const url = new URL(window.location);
+    url.pathname = `/settings/${page}`;
+    window.history.pushState({ section: "settings", page }, "", url);
+    showSection("settings", false);
   };
-
-  const closeSettingsModal = () => {
-    if (!settingsBackdrop) return;
-    settingsBackdrop.classList.remove("open");
-    settingsBackdrop.setAttribute("aria-hidden", "true");
-  };
-
-  if ($("closeSettingsButton")) $("closeSettingsButton").addEventListener("click", closeSettingsModal);
-  if (settingsBackdrop) {
-    settingsBackdrop.addEventListener("click", (e) => {
-      if (e.target === settingsBackdrop) closeSettingsModal();
-    });
-  }
 
   // İsim güncelleme formu
   if ($("updateNameForm")) {
@@ -1206,6 +1295,7 @@ function setupNavigation() {
             avatarColor: button.dataset.avatarColor
           })
         });
+
         authUser = res.user;
         localStorage.setItem("subscript_avatar_color", authUser.avatarColor);
         document.querySelectorAll("[data-avatar-color]").forEach((item) => {
@@ -1217,6 +1307,71 @@ function setupNavigation() {
       }
     });
   });
+
+  function updateAvatarGeneratorPreview() {
+    const preview = $("avatarGeneratorPreview");
+    if (!preview) return;
+    const selectedStyle = document.querySelector("[data-avatar-style].selected")?.dataset.avatarStyle || "lorelei";
+    const seed = $("avatarSeedInput")?.value.trim() || authUser?.name || "subscript";
+    preview.replaceChildren();
+    const image = document.createElement("img");
+    image.className = "avatar-image";
+    image.src = buildDicebearUrl(selectedStyle, seed);
+    image.alt = "Avatar önizlemesi";
+    image.addEventListener("error", () => {
+      image.remove();
+      preview.textContent = getInitials(seed);
+    }, { once: true });
+    preview.append(image);
+  }
+
+  document.querySelectorAll("[data-avatar-style]").forEach((button) => {
+    button.addEventListener("click", () => {
+      document.querySelectorAll("[data-avatar-style]").forEach((item) => item.classList.remove("selected"));
+      button.classList.add("selected");
+      updateAvatarGeneratorPreview();
+    });
+  });
+  if ($("avatarSeedInput")) $("avatarSeedInput").addEventListener("input", updateAvatarGeneratorPreview);
+  if ($("randomAvatarSeed")) {
+    $("randomAvatarSeed").addEventListener("click", () => {
+      const seed = `subscript-${Math.random().toString(36).slice(2, 8)}`;
+      $("avatarSeedInput").value = seed;
+      updateAvatarGeneratorPreview();
+    });
+  }
+  if ($("saveAvatarButton")) {
+    $("saveAvatarButton").addEventListener("click", async () => {
+      if (!authUser) return;
+      const message = $("avatarSaveMessage");
+      const avatarSeed = $("avatarSeedInput").value.trim();
+      const avatarStyle = document.querySelector("[data-avatar-style].selected")?.dataset.avatarStyle || "lorelei";
+      if (!avatarSeed) {
+        message.textContent = "Avatar adı boş bırakılamaz.";
+        return;
+      }
+      try {
+        message.style.color = "var(--muted)";
+        message.textContent = "Kaydediliyor…";
+        const res = await apiRequest("/api/profile/update", {
+          method: "POST",
+          body: JSON.stringify({
+            name: authUser.name,
+            avatarColor: authUser.avatarColor || "violet",
+            avatarStyle,
+            avatarSeed
+          })
+        });
+        authUser = res.user;
+        updateProfileUI();
+        message.style.color = "#10b981";
+        message.textContent = "Avatarın kaydedildi.";
+      } catch (error) {
+        message.style.color = "#ef4444";
+        message.textContent = error.message;
+      }
+    });
+  }
 
   // Şifre değiştirme formu
   if ($("updatePasswordForm")) {
@@ -1272,7 +1427,7 @@ function setupNavigation() {
               body: JSON.stringify({ plan: "pro" })
             });
             authUser.plan = "pro";
-            openSettingsModal();
+            openSettingsModal("account");
             updateProfileUI();
             alert("Tebrikler! Hesabınız Pro seviyesine yükseltildi.");
           }
@@ -1283,11 +1438,13 @@ function setupNavigation() {
     });
   }
 
-  document.querySelectorAll("[data-section='settings']").forEach((item) => {
-    item.addEventListener("click", () => {
-      openSettingsModal();
+  document.querySelectorAll("[data-settings-link]").forEach((link) => {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      openSettingsModal(link.dataset.settingsLink);
     });
   });
+  if ($("settingsLogout")) $("settingsLogout").addEventListener("click", () => $("profileLogout").click());
   $("profileLogout").addEventListener("click", async () => {
     try {
       if (authToken) await apiRequest("/api/auth/session", { method: "DELETE" });
@@ -1298,6 +1455,9 @@ function setupNavigation() {
       authUser = null;
       localStorage.removeItem("subscript_token");
       sessionStorage.removeItem("subscript_token");
+      localStorage.removeItem("subscript_name");
+      localStorage.removeItem("subscript_level");
+      localStorage.removeItem("subscript_avatar_color");
       $("profileMenu").hidden = true;
       updateProfileUI();
     }
@@ -1420,6 +1580,8 @@ async function loadClip(dataFile) {
 
   groups = data.groups;
   $("clipTitle").textContent = data.title;
+  $("heroClipTitle").textContent = data.title;
+  $("learnHero").style.setProperty("--hero-image", `url("https://img.youtube.com/vi/${data.youtubeId}/maxresdefault.jpg")`);
   
   const catalogItem = globalCatalog.find((c) => c.id === dataFile);
   const level = (catalogItem && catalogItem.level) || data.level || "B1";
@@ -1469,6 +1631,13 @@ async function init() {
       if (e.target === $("libraryModal")) closeLibraryModal();
     });
   }
+  $("heroStartButton").addEventListener("click", () => {
+    $("mainLayout").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  $("heroPlayButton").addEventListener("click", () => {
+    $("mainLayout").scrollIntoView({ behavior: "smooth", block: "start" });
+    play(true);
+  });
 
 }
 

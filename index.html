@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="/style.css" />
     <!-- Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
@@ -16,16 +16,19 @@
     <div class="auth-backdrop open" id="authBackdrop">
       <section class="onboarding-shell" aria-live="polite">
         <div class="onboarding-intro">
+          <div class="onboarding-showcase-layer showcase-layer-a" aria-hidden="true"></div>
+          <div class="onboarding-showcase-layer showcase-layer-b" aria-hidden="true"></div>
+          <div class="onboarding-showcase-shade" aria-hidden="true"></div>
           <div class="onboarding-brand">subscript<span>.</span></div>
           <div class="onboarding-intro-copy">
             <p class="onboarding-overline">İNGİLİZCEYİ KULAĞINLA ÖĞREN</p>
-            <h1>İngilizceyi gerçekten duyduğun an.</h1>
-            <p>Film ve dizi sahneleriyle kısa, odaklı ve doğal bir dinleme pratiği.</p>
+            <h1>Dil öğrenme yolculuğunu<br /><em>favorilerinle eğlenceli hale getir.</em></h1>
+            <p>Favori dizi ve filmlerinden sahnelerle İngilizceyi dinleyerek öğren. Dinle, tamamla ve ilerle.</p>
           </div>
           <div class="onboarding-preview">
-            <span class="preview-label">BUGÜNÜN KLİBİ</span>
-            <strong>The Godfather</strong>
-            <span>01:24 · B1 seviye</span>
+            <span class="preview-label">DİNLEME LABORATUVARI</span>
+            <strong>Bugünün pratiğine hazır mısın?</strong>
+            <span>Kısa, odaklı ve doğal İngilizce</span>
             <div class="preview-wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
           </div>
         </div>
@@ -130,60 +133,76 @@
       </section>
     </div>
 
-    <!-- Ayarlar Modalı -->
-    <div class="login-backdrop" id="settingsBackdrop" aria-hidden="true">
-      <section class="login-card" role="dialog" aria-modal="true" style="max-width: 440px;">
-        <button class="modal-close-button" type="button" id="closeSettingsButton" aria-label="Ayarlar penceresini kapat">×</button>
-        <div class="login-form-brand">subscript<span>.</span></div>
-        <h2 style="font-size: 20px; font-weight: 800; margin: 4px 0;">Hesap & Tercihler</h2>
-        <p class="login-form-subtitle" style="font-size: 12px; margin-bottom: 16px;">Profil bilgilerinizi ve üyelik planınızı yönetin.</p>
-
-        <!-- İsim Güncelleme -->
-        <form id="updateNameForm" style="margin-bottom: 20px; text-align: left;">
-          <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 4px;">Ad Soyad</label>
-          <div class="inputForm">
-            <input id="settingsNameInput" type="text" class="input" placeholder="Adınız" />
+    <section class="settings-view" id="settingsView" hidden aria-label="Ayarlar">
+      <div class="settings-layout">
+        <div class="settings-main">
+          <div class="settings-heading">
+            <div>
+              <p class="eyebrow">HESAP MERKEZİ</p>
+              <h1 id="settingsPageTitle">Hesap</h1>
+              <p>Profil bilgilerini, hesabını ve öğrenme deneyimini yönet.</p>
+            </div>
+            <a class="settings-back-link" href="/ogren">← Öğrenmeye dön</a>
           </div>
-          <button type="submit" class="button-submit" style="height: 38px; margin-top: 8px;">Adı Güncelle</button>
-        </form>
 
-        <div class="avatar-preference">
-          <label>Profil avatarı</label>
-          <p>Baş harflerin avatarında görünür. Rengini seçebilirsin.</p>
-          <div class="avatar-color-options" id="avatarColorOptions" role="group" aria-label="Avatar rengi">
-            <button type="button" class="avatar-color-option avatar-color-violet" data-avatar-color="violet" aria-label="Mor"></button>
-            <button type="button" class="avatar-color-option avatar-color-ocean" data-avatar-color="ocean" aria-label="Okyanus"></button>
-            <button type="button" class="avatar-color-option avatar-color-sunset" data-avatar-color="sunset" aria-label="Gün batımı"></button>
-            <button type="button" class="avatar-color-option avatar-color-mint" data-avatar-color="mint" aria-label="Mint"></button>
-            <button type="button" class="avatar-color-option avatar-color-rose" data-avatar-color="rose" aria-label="Gül"></button>
-            <button type="button" class="avatar-color-option avatar-color-slate" data-avatar-color="slate" aria-label="Lacivert"></button>
-          </div>
+          <section class="settings-page" data-settings-page="account">
+            <div class="settings-card">
+              <div class="settings-card-heading"><div><p class="eyebrow">KİŞİSEL BİLGİLER</p><h2>Hesap</h2></div><span class="settings-card-icon">◎</span></div>
+              <form id="updateNameForm" class="settings-form">
+                <label for="settingsNameInput">Ad soyad</label>
+                <input id="settingsNameInput" type="text" placeholder="Adınız" />
+                <button type="submit" class="settings-primary-button">Adı güncelle</button>
+              </form>
+              <div class="settings-divider"></div>
+              <div class="settings-card-heading compact"><div><p class="eyebrow">ABONELİK</p><h2>Planın</h2></div><span id="settingsPlanBadge" class="settings-plan-badge">FREE</span></div>
+              <p class="settings-muted">Pro plana geçerek sınırsız film/dizi sahnesi ve yapay zeka ipuçlarına eriş.</p>
+              <button type="button" id="upgradePlanBtn" class="settings-upgrade-button">Pro plana yükselt</button>
+            </div>
+          </section>
+
+          <section class="settings-page" data-settings-page="profile" hidden>
+            <div class="settings-card">
+              <div class="settings-card-heading"><div><p class="eyebrow">GÖRÜNÜM</p><h2>Profil</h2></div><span class="settings-card-icon">◉</span></div>
+              <div class="settings-divider"></div>
+              <form id="updatePasswordForm" class="settings-form">
+                <label for="settingsCurrentPass">Şifre değiştir</label>
+                <input id="settingsCurrentPass" type="password" placeholder="Mevcut şifre" />
+                <input id="settingsNewPass" type="password" placeholder="Yeni şifre (en az 8 karakter)" />
+                <p id="settingsPassMsg" class="settings-message" role="alert"></p>
+                <button type="submit" class="settings-primary-button">Şifreyi değiştir</button>
+              </form>
+            </div>
+          </section>
+
+          <section class="settings-page" data-settings-page="courses" hidden>
+            <div class="settings-card">
+              <div class="settings-card-heading"><div><p class="eyebrow">ÖĞRENME ALANLARI</p><h2>Kurslar</h2></div><span class="settings-card-icon">▣</span></div>
+              <p class="settings-muted">Çalışmak istediğin alanları seç. İlerleyen sürümlerde her kurs için ayrı ilerleme takibi eklenebilir.</p>
+              <div class="course-list">
+                <div class="course-row"><span class="course-icon">🇬🇧</span><div><strong>İngilizce dinleme</strong><small>Film ve dizi sahneleriyle pratik</small></div><span class="course-status">Aktif</span></div>
+                <div class="course-row"><span class="course-icon">🇩🇪</span><div><strong>Almanca</strong><small>Temel konuşma ve kelime pratiği</small></div><button type="button" class="course-action">Yakında</button></div>
+                <div class="course-row"><span class="course-icon">∑</span><div><strong>Matematik</strong><small>Günlük problem çözme egzersizleri</small></div><button type="button" class="course-action">Yakında</button></div>
+              </div>
+            </div>
+          </section>
         </div>
 
-        <!-- Şifre Değiştirme -->
-        <form id="updatePasswordForm" style="margin-bottom: 20px; text-align: left;">
-          <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 4px;">Şifre Değiştir</label>
-          <div class="inputForm" style="margin-bottom: 6px;">
-            <input id="settingsCurrentPass" type="password" class="input" placeholder="Mevcut Şifre" />
-          </div>
-          <div class="inputForm">
-            <input id="settingsNewPass" type="password" class="input" placeholder="Yeni Şifre (En az 8 karakter)" />
-          </div>
-          <p id="settingsPassMsg" class="login-field-error" style="margin-top: 4px; font-size: 12px;"></p>
-          <button type="submit" class="button-submit" style="height: 38px; margin-top: 8px; background: #6366f1;">Şifreyi Değiştir</button>
-        </form>
-
-        <!-- Üyelik Durumu -->
-        <div style="padding: 14px; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2); border-radius: 12px; text-align: left;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-size: 12px; font-weight: 700;">Abonelik Planı:</span>
-            <span id="settingsPlanBadge" style="font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 6px; background: #6366f1; color:#fff;">FREE</span>
-          </div>
-          <p style="font-size: 11px; color: var(--muted); margin: 6px 0 10px;">Pro plana geçerek sınırsız film/dizi sahnesi ve yapay zeka ipuçlarına erişin.</p>
-          <button type="button" id="upgradePlanBtn" class="button-submit" style="height: 38px; background: #10b981;">Pro Plana Yükselt (Stripe)</button>
-        </div>
-      </section>
-    </div>
+        <aside class="settings-sidebar">
+          <section class="settings-nav-card">
+            <p class="settings-nav-title">Hesap</p>
+            <a href="/settings/account" data-settings-link="account">Hesap</a>
+            <a href="/settings/profile" data-settings-link="profile">Profil</a>
+            <a href="/settings/courses" data-settings-link="courses">Kurslar</a>
+          </section>
+          <section class="settings-nav-card settings-support-card">
+            <p class="settings-nav-title">Destek</p>
+            <a href="/ogren">Yardım merkezi</a>
+            <a href="/ogren">Geri bildirim</a>
+          </section>
+          <button type="button" class="settings-logout-button" id="settingsLogout">Oturumu kapat</button>
+        </aside>
+      </div>
+    </section>
     <main class="app-shell">
       <aside class="side-nav" id="sideNav">
         <a class="side-brand" href="#">subscript<span>.</span></a>
@@ -192,7 +211,7 @@
             <span class="side-nav-icon">⌂</span>
             <span class="button_top">Öğren</span>
           </button>
-          <button class="side-nav-item" type="button" data-section="profile">
+          <button class="side-nav-item" id="profileNavItem" type="button" data-section="profile">
             <span class="side-nav-icon">◉</span>
             <span class="button_top">Profil</span>
           </button>
@@ -239,7 +258,7 @@
             <span class="profile-chevron">⌄</span>
           </button>
           <div class="profile-menu" id="profileMenu" hidden>
-            <div class="profile-card">
+            <div class="profile-card" id="profileIdentityCard">
               <div class="card__img" aria-hidden="true">
                 <svg viewBox="0 0 540 220" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
                   <defs>
@@ -266,10 +285,31 @@
             <button type="button" data-profile-action="profile">Profilimi görüntüle</button>
             <button type="button" data-profile-action="settings">Ayarlar</button>
             <button type="button" id="profileLogin">Giriş yap</button>
+            <button type="button" id="profileRegister">Kayıt ol</button>
             <button type="button" class="profile-logout" id="profileLogout" hidden>Oturumu kapat</button>
           </div>
         </div>
       </header>
+
+      <section class="learn-hero" id="learnHero">
+        <div class="learn-hero-glow" aria-hidden="true"></div>
+        <div class="learn-hero-content">
+          <div class="learn-hero-trust">
+            <span class="learn-hero-avatars" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span>Her gün kısa bir dinleme pratiği</span>
+          </div>
+          <h1>İngilizceyi<br /><em>gerçekten duy.</em></h1>
+          <p>Film, dizi ve şarkı klipleriyle kulağını doğal İngilizceye alıştır. Dinle, tamamla ve ilerle.</p>
+          <div class="learn-hero-actions">
+            <button type="button" class="learn-hero-start" id="heroStartButton">Çalışmaya başla <span>↗</span></button>
+            <button type="button" class="learn-hero-play" id="heroPlayButton" aria-label="Klibi oynat">▶</button>
+          </div>
+        </div>
+        <div class="learn-hero-meta">
+          <span><strong id="heroClipTitle">Bugünün klibi</strong><small>Dinleme laboratuvarı</small></span>
+          <span class="learn-hero-scroll">Aşağı kaydır <b>↓</b></span>
+        </div>
+      </section>
 
       <section class="lesson-head">
         <div>
@@ -287,6 +327,36 @@
               <div class="profile-cover">
                 <span class="profile-cover-word">subscript.</span>
                 <button type="button" class="profile-edit-button" aria-label="Profili düzenle">✎</button>
+              </div>
+              <div class="profile-avatar-builder">
+                <div class="profile-avatar-builder-heading">
+                  <div><p class="eyebrow">PROFİL AVATARI</p><h2>Avatarını oluştur</h2></div>
+                  <span class="profile-section-icon">✦</span>
+                </div>
+                <div class="dicebear-generator">
+                  <div class="dicebear-preview-wrap">
+                    <span class="avatar avatar-generator-preview" id="avatarGeneratorPreview">S</span>
+                    <span class="dicebear-preview-label">Önizleme</span>
+                  </div>
+                  <div class="dicebear-controls">
+                    <label for="avatarSeedInput">Avatar adı veya seed</label>
+                    <div class="dicebear-seed-row">
+                      <input id="avatarSeedInput" type="text" maxlength="64" placeholder="Örn. Emre" />
+                      <button type="button" class="dicebear-random-button" id="randomAvatarSeed" aria-label="Rastgele avatar üret">↻</button>
+                    </div>
+                    <div class="dicebear-style-grid" id="dicebearStyleOptions" role="group" aria-label="Avatar stili">
+                      <button type="button" class="dicebear-style-option" data-avatar-style="lorelei">Lorelei</button>
+                      <button type="button" class="dicebear-style-option" data-avatar-style="adventurer">Adventurer</button>
+                      <button type="button" class="dicebear-style-option" data-avatar-style="bottts">Bottts</button>
+                      <button type="button" class="dicebear-style-option" data-avatar-style="fun-emoji">Fun emoji</button>
+                      <button type="button" class="dicebear-style-option" data-avatar-style="notionists">Notionists</button>
+                      <button type="button" class="dicebear-style-option" data-avatar-style="pixel-art">Pixel art</button>
+                    </div>
+                    <button type="button" class="settings-primary-button" id="saveAvatarButton">Avatarı kaydet</button>
+                    <p class="settings-message" id="avatarSaveMessage" role="status"></p>
+                    <a class="dicebear-attribution" href="https://www.dicebear.com/" target="_blank" rel="noreferrer">Avatarlar DiceBear ile oluşturulur ↗</a>
+                  </div>
+                </div>
               </div>
               <div class="profile-identity">
                 <span class="avatar avatar-profile-page" id="profilePageAvatar">S</span>
@@ -357,7 +427,7 @@
       <section class="admin-view" id="adminView" hidden aria-label="Admin paneli"></section>
 
       <!-- Ana 2 Sütunlu Grid: Sol (Video + Egzersiz), Sağ (Klip Akışı) -->
-      <div class="main-layout">
+      <div class="main-layout" id="mainLayout">
         <section class="practice-column">
           <div class="video-card">
             <div class="video-stage" id="videoStage">
@@ -481,6 +551,6 @@
       <canvas id="confettiCanvas"></canvas>
       </div>
     </main>
-    <script src="app.js"></script>
+    <script src="/app.js"></script>
   </body>
 </html>

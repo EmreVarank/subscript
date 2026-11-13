@@ -1158,7 +1158,7 @@ async function api(req, res, url) {
 
 // ─── Statik Dosya Sunucu ──────────────────────────────────────────────────────
 function staticFile(req, res, url) {
-  const requested = url.pathname === "/admin" ? "/index.html" : url.pathname === "/" ? "/index.html" : url.pathname;
+  const requested = url.pathname === "/admin" ? "/index.html" : url.pathname === "/" ? "/landing.html" : url.pathname === "/ogren" ? "/index.html" : url.pathname;
   const file      = resolve(root, "." + normalize(requested));
   if (relative(root, file).startsWith("..")) return send(res, 403, { error: "Forbidden" });
 

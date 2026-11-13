@@ -65,6 +65,9 @@ npm start
 Tarayıcınızda açın:
 👉 **`http://localhost:8080`**
 
+`/` adresi herkese açık tanıtım ve landing sayfasıdır. Öğrenme uygulamasına geçmek için:
+👉 **`http://localhost:8080/ogren`**
+
 İlk girişte kayıt olup seviyenizi seçebilirsiniz. Seviyesini bilmeyen kullanıcılar için üç soruluk mini seviye testi bulunur. Örneğin B1 kullanıcılarına B1 ve B2 klipleri önerilir.
 
 Admin hesabını belirlemek için sunucuyu başlatmadan önce:

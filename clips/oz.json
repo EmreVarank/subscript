@@ -1,0 +1,210 @@
+{
+  "url": "https://www.youtube.com/watch?v=0yWd88dwxJs&list=PLn7dNTyN3MmWkQfcJfhduwF0meaV1e4J0&index=34",
+  "youtubeId": "0yWd88dwxJs",
+  "title": "Oz",
+  "language": "en",
+  "durationSeconds": 75.55,
+  "sentencesPerGroup": 2,
+  "groups": [
+    {
+      "start": 6.36,
+      "end": 10.32,
+      "sentences": [
+        {
+          "start": 6.36,
+          "end": 6.84,
+          "text": "Beach.",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 8.62,
+          "end": 10.32,
+          "text": "We are Saiz's body bag.",
+          "blankIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "start": 11.3,
+      "end": 14.56,
+      "sentences": [
+        {
+          "start": 11.3,
+          "end": 12.66,
+          "text": "Well, sort of.",
+          "blankIndexes": [
+            0,
+            1
+          ]
+        },
+        {
+          "start": 14.18,
+          "end": 14.56,
+          "text": "Not really.",
+          "blankIndexes": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "start": 15.71,
+      "end": 16.41,
+      "sentences": [
+        {
+          "start": 15.71,
+          "end": 16.41,
+          "text": "I want to sleep.",
+          "blankIndexes": [
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "start": 30.36,
+      "end": 32.91,
+      "sentences": [
+        {
+          "start": 30.36,
+          "end": 31.02,
+          "text": "Up and down.",
+          "blankIndexes": [
+            2
+          ]
+        },
+        {
+          "start": 32.19,
+          "end": 32.91,
+          "text": "Life and house.",
+          "blankIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "start": 33.39,
+      "end": 37.26,
+      "sentences": [
+        {
+          "start": 33.39,
+          "end": 35.33,
+          "text": "First I was king, then I was loony.",
+          "blankIndexes": [
+            0,
+            7
+          ]
+        },
+        {
+          "start": 36.38,
+          "end": 37.26,
+          "text": "Now I'm king again.",
+          "blankIndexes": [
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "start": 38.01,
+      "end": 40.62,
+      "sentences": [
+        {
+          "start": 38.01,
+          "end": 38.49,
+          "text": "Congratulations.",
+          "blankIndexes": [
+            0
+          ]
+        },
+        {
+          "start": 39.9,
+          "end": 40.62,
+          "text": "You and me,",
+          "blankIndexes": [
+            0,
+            1,
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "start": 41.44,
+      "end": 47.67,
+      "sentences": [
+        {
+          "start": 41.44,
+          "end": 43.22,
+          "text": "we come at the world from different paths.",
+          "blankIndexes": [
+            4,
+            6,
+            7
+          ]
+        },
+        {
+          "start": 45.37,
+          "end": 47.67,
+          "text": "But there's something about you I've always admired.",
+          "blankIndexes": [
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "start": 49.25,
+      "end": 52.05,
+      "sentences": [
+        {
+          "start": 49.25,
+          "end": 49.89,
+          "text": "And me, you.",
+          "blankIndexes": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "start": 51.35,
+          "end": 52.05,
+          "text": "You are alone.",
+          "blankIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "start": 71.94,
+      "end": 75.55,
+      "sentences": [
+        {
+          "start": 71.94,
+          "end": 72.94,
+          "text": "They will kill you, you know.",
+          "blankIndexes": [
+            1,
+            2,
+            5
+          ]
+        },
+        {
+          "start": 74.99,
+          "end": 75.55,
+          "text": "Bitch, I can't.",
+          "blankIndexes": [
+            0
+          ]
+        }
+      ]
+    }
+  ]
+}
