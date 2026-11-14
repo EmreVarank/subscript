@@ -1,131 +1,158 @@
-# 🎧 liscript
+# subscript
 
-> Film ve dizi kesitleriyle İngilizce dinleme pratiği yapmanızı sağlayan yapay zeka destekli interaktif web platformu.
+Film ve dizi sahneleriyle İngilizce dinleme pratiği sunan, Node.js tabanlı bir web uygulaması.
 
----
+## Özellikler
 
-## 🌟 Özellikler
+- Landing sayfası ve kullanıcı kayıt/giriş akışı
+- CEFR seviyelerine göre klip kataloğu
+- YouTube tabanlı dinleme ve cümle tamamlama alıştırmaları
+- Harf kutucuklarıyla cevaplama ve üç aşamalı ipucu sistemi
+- İlerleme, doğruluk, seri ve profil istatistikleri
+- Ayarlar, profil ve avatar özelleştirme ekranları
+- Yönetici paneli üzerinden klip yönetimi
+- Yerel admin ortamında Whisper ile transkripsiyon ve klip üretimi
+- Açık/koyu tema ve tutarlı Sofia Sans tabanlı arayüz
 
-- **AI Tabanlı Transkripsiyon:** `faster-whisper` ile YouTube videolarındaki konuşmaları kelime ve salise düzeyinde zaman damgalarıyla çıkartır.
-- **Akıllı Cümle Gruplama:** Doğal konuşma duraklamalarını (VAD) analiz ederek konuşmaları 2-3 cümlelik dinleme bloklarına böler.
-- **İnteraktif Alıştırmalar:** Kelimeleri harf harf doldurabileceğiniz modern "tile" arayüzü.
-- **Akıllı 3 Aşamalı İpucu:** 
-  1. Türkçe anlam balonu
-  2. İlk harfi açma
-  3. Kelimeyi tamamlama
-- **Oyunlaştırma (Gamification):** Doğru cevap serisi (Streak 🔥), doğruluk oranı ve bölüm sonu konfeti kutlaması.
-- **Klip Kütüphanesi:** CEFR seviyelerine göre (B1, B2, C1) ayrılmış hazır film ve dizi kesitleri arasında anında geçiş.
-- **Hile Önleme:** YouTube altyazılarını zorla kapatan ve ek kontrolleri engelleyen temiz video oynatıcı.
+## Teknoloji
 
----
+- Node.js 22.5+
+- Node.js `node:sqlite` ile yerel veri saklama
+- Vanilla HTML, CSS ve JavaScript
+- Python, `faster-whisper`, `yt-dlp` ve FFmpeg (yalnızca transkripsiyon araçları için)
 
-## 🚀 Hızlı Başlangıç
+## Hızlı başlangıç
 
-### 1. Gereksinimleri Yükleyin
+### Gereksinimler
 
-```powershell
-pip install -r requirements.txt
-```
+- Node.js 22.5 veya üzeri
+- Transkripsiyon araçlarını kullanacaksan Python ve FFmpeg
 
-> **Not:** Sisteminizde `ffmpeg` yüklü olmalıdır (`winget install ffmpeg`).
-
-### 2. Yeni Video Ekleyin
-
-`urls.txt` dosyasını açıp dilediğiniz YouTube linklerini ekleyin:
-
-```text
-https://www.youtube.com/watch?v=VIDEO_ID | Dizi / Film Adı
-```
-
-Toplu işleme scriptini çalıştırın:
+FFmpeg Windows'ta şu komutla kurulabilir:
 
 ```powershell
-python batch_transcribe.py
+winget install ffmpeg
 ```
 
-*Tek bir video eklemek için:*
-```powershell
-python transcribe.py --url "https://www.youtube.com/watch?v=VIDEO_ID" --title "Film Adı"
-```
-
-Video indirme ve Whisper transkripsiyonu yalnızca içerik yöneticisinin
-yerel bilgisayarında çalıştırılır. Normal kullanıcılar video yüklemez veya
-Whisper çalıştırmaz; hazır klip kataloğundaki içerikleri YouTube oynatıcısı
-üzerinden kullanır. Bu nedenle `yt-dlp`, `faster-whisper` ve model cache'i
-yalnızca bu yerel admin ortamında bulunmalıdır.
-
-### 3. Uygulamayı Başlatın
-
-Node.js API'si ve frontend'i birlikte başlatın (Node.js 22.5+):
+### Uygulamayı çalıştırma
 
 ```powershell
 npm start
 ```
 
-Tarayıcınızda açın:
-👉 **`http://localhost:8080`**
+Uygulama varsayılan olarak `http://localhost:8080` adresinde açılır.
 
-`/` adresi herkese açık tanıtım ve landing sayfasıdır. Öğrenme uygulamasına geçmek için:
-👉 **`http://localhost:8080/ogren`**
+Geliştirme sırasında aynı sunucuyu doğrudan şu komutla da çalıştırabilirsin:
 
-İlk girişte kayıt olup seviyenizi seçebilirsiniz. Seviyesini bilmeyen kullanıcılar için üç soruluk mini seviye testi bulunur. Örneğin B1 kullanıcılarına B1 ve B2 klipleri önerilir.
+```powershell
+npm run dev
+```
 
-Admin hesabını belirlemek için sunucuyu başlatmadan önce:
+### Testleri çalıştırma
+
+```powershell
+npm test
+```
+
+## Route'lar
+
+| Route | Açıklama |
+|---|---|
+| `/` | Tanıtım ve landing sayfası |
+| `/ogren` | Korumalı öğrenme uygulaması |
+| `/settings/account` | Hesap ayarları |
+| `/settings/profile` | Profil ayarları |
+| `/settings/courses` | Öğrenme alanları |
+| `/admin` | Yönetici paneli |
+| `/analysis` | Proje analiz ekranı |
+
+Korumalı route'lar geçerli oturum yoksa landing sayfasına yönlendirilir.
+
+## Admin yapılandırması
+
+Sunucuyu başlatmadan önce admin hesabının e-posta adresini tanımlayabilirsin:
 
 ```powershell
 $env:ADMIN_EMAIL = "admin@example.com"
 npm start
 ```
 
-Admin klip ekleme endpoint'i yalnızca bu e-posta ile giriş yapan kullanıcıya açıktır:
+Admin klip endpoint'leri:
 
 ```text
-POST /api/admin/clips
+POST   /api/admin/clips
+PUT    /api/admin/clips/:id
+DELETE /api/admin/clips/:id
+GET    /api/admin/overview
+POST   /api/admin/transcribe
+GET    /api/admin/jobs/:jobId
 ```
 
-Admin panelindeki otomatik YouTube işleme de yerel Node.js sunucusuna bağlıdır.
-Sunucu `localhost` üzerinde çalışıyorsa bu özellik yalnızca o bilgisayarda
-kullanılır; kullanıcıların normal uygulama akışı bu işlemden bağımsızdır.
+Transkripsiyon ve YouTube işleme normal kullanıcı akışının parçası değildir; yerel admin ortamında çalıştırılmalıdır.
 
-### Auth ve yerel veri
+## Veri ve içerik
 
-Kullanıcılar ve oturumlar yerel geliştirme ortamında `data/subscript.sqlite` içinde saklanır. İlk çalıştırmada eski `data/users.json` dosyası otomatik olarak SQLite'a taşınır. Bu veritabanı dosyası Git'e dahil edilmez.
+- Kullanıcı ve oturum verileri: `data/subscript.sqlite`
+- Klip kataloğu: `clips.json`
+- Klip transkriptleri: `clips/`
+- Eski kullanıcı geçiş kaynağı: `data/users.json`
+- Toplu transkripsiyon girdileri: `urls.txt`
 
-Bu SQLite katmanı tek sunuculu MVP içindir. Üretime çıkmadan önce PostgreSQL, gizli ortam değişkenleri, rate limiting, e-posta doğrulama ve şifre sıfırlama akışları eklenmelidir.
+Yerel veritabanı, kullanıcı verileri ve model çıktıları Git'e dahil edilmemelidir.
 
-Klip ekleme gövdesi `id`, `title`, `level`, `youtubeId` ve `dataFile` alanlarını içermelidir. Bu ilk backend sürümü kullanıcıları `data/users.json` dosyasında saklar; üretime geçerken PostgreSQL'e taşınacaktır.
+## Transkripsiyon araçları
 
----
+Bağımlılıkları kur:
 
-## 📁 Proje Yapısı
-
-```
-liscript/
-├── clips/                # Üretilen alıştırma JSON ve TXT transkriptleri
-├── app.js                # Frontend etkileşim mantığı ve YouTube Player yönetimi
-├── server.js             # Node.js API, auth ve admin klip endpoint'leri
-├── package.json          # Node.js çalıştırma komutları
-├── data/users.json       # Eski kullanıcı verisi / ilk geçiş kaynağı (git dışında)
-├── data/subscript.sqlite # Yerel MVP kullanıcı ve oturum verisi (git dışında)
-├── batch_transcribe.py   # urls.txt üzerinden toplu video işleme scripti
-├── clips.json            # Klip kataloğu ve seviye verileri
-├── index.html            # Web arayüzü
-├── style.css             # Karanlık mod modern arayüz stilleri
-├── transcribe.py         # Tekil ses indirme ve Whisper transkripsiyon motoru
-├── urls.txt              # İşlenecek YouTube linkleri listesi
-├── requirements.txt      # Python bağımlılıkları
-└── .gitignore            # Git dışı bırakılan geçici dosyalar
+```powershell
+pip install -r requirements.txt
 ```
 
----
+Toplu işleme:
 
-## ⌨️ Klavye Kısayolları
+```powershell
+python batch_transcribe.py
+```
+
+Tek video işleme:
+
+```powershell
+python transcribe.py --url "https://www.youtube.com/watch?v=VIDEO_ID" --title "Film Adı"
+```
+
+## Proje yapısı
+
+```text
+subscript/
+├── landing.html       # Landing sayfası
+├── landing.css        # Landing stilleri
+├── landing.js         # Landing ve auth modal davranışları
+├── index.html         # Öğrenme, profil ve ayarlar arayüzü
+├── style.css          # Uygulama stilleri ve tema sistemi
+├── admin.html         # Yönetim paneli
+├── analysis.html      # Analiz ekranı
+├── app.js             # Uygulama etkileşimleri ve API istemcisi
+├── server.js          # HTTP sunucusu, route'lar ve API
+├── clips.json         # Klip kataloğu
+├── clips/             # Klip veri dosyaları
+├── data/              # Yerel veriler ve SQLite veritabanı
+├── transcribe.py      # Tekil transkripsiyon
+├── batch_transcribe.py # Toplu transkripsiyon
+├── requirements.txt   # Python bağımlılıkları
+└── test/              # Node.js testleri
+```
+
+## Klavye kısayolları
 
 | Kısayol | İşlev |
 |---|---|
-| `Space` | Videoyu Oynat / Duraklat |
+| `Space` | Oynat / duraklat |
 | `R` | Mevcut parçayı başa sar |
 | `Tab` | İpucu al |
-| `Enter` | Cevabı kontrol et / Sonraki parçaya geç |
+| `Enter` | Cevabı kontrol et veya sonraki parçaya geç |
 | `← / →` | Harf kutucukları arasında gezin |
 | `Backspace` | Harfi sil ve önceki kutuya dön |
+
+## Üretim notu
+
+Bu proje yerel tek sunuculu MVP olarak yapılandırılmıştır. Üretime geçmeden önce PostgreSQL, gizli ortam değişkenleri, rate limiting, e-posta doğrulama ve şifre sıfırlama akışları eklenmelidir.
