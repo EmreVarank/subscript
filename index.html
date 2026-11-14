@@ -3,10 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>subscript. — İngilizce Dinleme Pratiği</title>
+    <title>subscript — İngilizce Dinleme Pratiği</title>
+    <script>
+      (function() {
+        var token = localStorage.getItem("subscript_token") || sessionStorage.getItem("subscript_token");
+        if (!token) {
+          window.location.replace("/");
+        }
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Sofia+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/style.css" />
     <!-- Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -19,7 +27,7 @@
           <div class="onboarding-showcase-layer showcase-layer-a" aria-hidden="true"></div>
           <div class="onboarding-showcase-layer showcase-layer-b" aria-hidden="true"></div>
           <div class="onboarding-showcase-shade" aria-hidden="true"></div>
-          <div class="onboarding-brand">subscript<span>.</span></div>
+          <div class="onboarding-brand">subscript</div>
           <div class="onboarding-intro-copy">
             <p class="onboarding-overline">İNGİLİZCEYİ KULAĞINLA ÖĞREN</p>
             <h1>Dil öğrenme yolculuğunu<br /><em>favorilerinle eğlenceli hale getir.</em></h1>
@@ -220,7 +228,7 @@
       <section class="login-card" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
         <button class="modal-close-button" type="button" id="closeLoginButton" aria-label="Giriş penceresini kapat">×</button>
         <form id="loginForm" class="form" novalidate>
-          <div class="login-form-brand">subscript<span>.</span></div>
+          <div class="login-form-brand">subscript</div>
           <h2 id="loginTitle">Kaldığın yerden devam et.</h2>
           <p class="login-form-subtitle">İlerlemeni ve favori kliplerini kaydetmek için giriş yap.</p>
 
@@ -347,27 +355,23 @@
     </section>
     <main class="app-shell">
       <aside class="side-nav" id="sideNav">
-        <a class="side-brand" href="#">subscript<span>.</span></a>
+        <a class="side-brand" href="#">subscript</a>
         <nav class="side-nav-links" aria-label="Ana menü">
           <button class="side-nav-item active" type="button" data-section="learn">
-            <span class="side-nav-icon">⌂</span>
             <span class="button_top">Öğren</span>
           </button>
           <button class="side-nav-item" id="profileNavItem" type="button" data-section="profile">
-            <span class="side-nav-icon">◉</span>
             <span class="button_top">Profil</span>
           </button>
           <button class="side-nav-item" type="button" data-section="settings">
-            <span class="side-nav-icon">⚙</span>
             <span class="button_top">Ayarlar</span>
           </button>
           <a class="side-nav-item admin-nav-item" id="adminNavItem" href="/admin" data-section="admin" hidden>
-            <span class="side-nav-icon">▣</span>
             <span class="button_top">Admin</span>
           </a>
         </nav>
         <div class="side-nav-footer">
-          <span class="side-nav-version">subscript. beta</span>
+          <span class="side-nav-version">subscript beta</span>
         </div>
       </aside>
       <div class="app-content">
@@ -447,7 +451,7 @@
           <div class="profile-main-column">
             <section class="profile-hero-card">
               <div class="profile-cover">
-                <span class="profile-cover-word">subscript.</span>
+                <span class="profile-cover-word">subscript</span>
                 <button type="button" class="profile-edit-button" aria-label="Profili düzenle">✎</button>
               </div>
               <div class="profile-avatar-builder">
@@ -560,7 +564,7 @@
               <div class="subtitles-blocker-mask" aria-hidden="true"></div>
               <div class="timebar">
                 <span id="segmentTime">00:00 — 00:00</span>
-                <span>subscript.</span>
+                <span>subscript</span>
               </div>
             </div>
             <div class="video-controls">

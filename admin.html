@@ -3,14 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>subscript. — Yönetim Paneli</title>
+  <title>subscript — Yönetim Paneli</title>
+  <script>
+    (function() {
+      var token = localStorage.getItem("subscript_token") || sessionStorage.getItem("subscript_token");
+      if (!token) {
+        window.location.replace("/");
+      }
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sofia+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <style>
-    body { font-family: 'Manrope', sans-serif; background: #0b1120; color: #f1f5f9; }
-    .mono { font-family: 'DM Mono', monospace; }
+    body { font-family: 'Sofia Sans', sans-serif; background: #0b1120; color: #f1f5f9; }
+    .mono { font-family: 'Sofia Sans', sans-serif; }
     .admin-shell { display: flex; gap: 2rem; max-width: 1440px; margin: 0 auto; }
     .admin-sidebar {
       position: sticky; top: 2.5rem; align-self: flex-start; width: 190px; min-width: 190px;
@@ -42,7 +50,7 @@
 <body class="min-h-screen p-6 md:p-10">
   <div class="admin-shell">
     <aside class="admin-sidebar" aria-label="Ana menü">
-      <a class="admin-brand" href="/">subscript<span>.</span></a>
+      <a class="admin-brand" href="/">subscript</a>
       <nav class="admin-nav">
         <a href="/"><span class="admin-nav-icon">⌂</span><span>Öğren</span></a>
         <a href="/profil"><span class="admin-nav-icon">◉</span><span>Profil</span></a>
@@ -54,7 +62,7 @@
     <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-slate-800">
       <div>
         <div class="flex items-center gap-3">
-          <span class="text-2xl font-black tracking-tight text-white">subscript<span class="text-indigo-400">.</span></span>
+          <span class="text-2xl font-black tracking-tight text-white">subscript</span>
           <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Admin Dashboard</span>
         </div>
         <p class="text-slate-400 text-sm mt-1">Platform metrikleri, klip kütüphanesi ve kullanıcı yönetimi</p>

@@ -127,10 +127,19 @@ try { database.exec("ALTER TABLE users ADD COLUMN avatar_color TEXT NOT NULL DEF
 
 // ─── Yardımcı Fonksiyonlar ────────────────────────────────────────────────────
 const json       = (file) => JSON.parse(readFileSync(file, "utf8"));
-const send       = (res, status, body) => {
-  res.writeHead(status, { "Content-Type": "application/json; charset=utf-8" });
+const send       = (res, status, body, extraHeaders = {}) => {
+  res.writeHead(status, {
+    "Content-Type": "application/json; charset=utf-8",
+    ...extraHeaders
+  });
   res.end(status === 204 ? undefined : JSON.stringify(body));
 };
+const authCookieHeader = (token, maxAgeSeconds = 30 * 24 * 60 * 60) => ({
+  "Set-Cookie": `subscript_token=${token}; Path=/; Max-Age=${maxAgeSeconds}; SameSite=Lax`
+});
+const clearAuthCookieHeader = () => ({
+  "Set-Cookie": "subscript_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; SameSite=Lax"
+});
 const readBody   = async (req) => {
   let body = "";
   for await (const chunk of req) body += chunk;
@@ -305,17 +314,27 @@ function migrateUsers() {
 migrateUsers();
 
 // ─── Auth Yardımcıları ────────────────────────────────────────────────────────
-function currentUser(req) {
+function extractToken(req) {
   const value  = req.headers.authorization || "";
   const bearer = value.replace(/^Bearer\s+/i, "").trim();
-  if (!bearer) return null;
+  if (bearer) return bearer;
+  if (req.headers.cookie) {
+    const match = req.headers.cookie.match(/(?:^|;\s*)subscript_token=([^;]+)/);
+    if (match) return decodeURIComponent(match[1].trim());
+  }
+  return null;
+}
+
+function currentUser(req) {
+  const token = extractToken(req);
+  if (!token) return null;
   const session = database.prepare(`
     SELECT users.id, users.name, users.email, users.level, users.created_at,
            users.email_verified, users.verified_at, users.plan, users.daily_clips_used, users.last_active_date
     FROM sessions
     JOIN users ON users.id = sessions.user_id
     WHERE sessions.token_hash = ? AND sessions.expires_at > ?
-  `).get(tokenHash(bearer), now());
+  `).get(tokenHash(token), now());
   return session || null;
 }
 
@@ -460,10 +479,9 @@ async function api(req, res, url) {
 
   // ── DELETE /api/auth/session ───────────────────────────────────────────────
   if (req.method === "DELETE" && url.pathname === "/api/auth/session") {
-    const value  = req.headers.authorization || "";
-    const bearer = value.replace(/^Bearer\s+/i, "").trim();
-    if (bearer) database.prepare("DELETE FROM sessions WHERE token_hash = ?").run(tokenHash(bearer));
-    return send(res, 204, {});
+    const token = extractToken(req);
+    if (token) database.prepare("DELETE FROM sessions WHERE token_hash = ?").run(tokenHash(token));
+    return send(res, 204, {}, clearAuthCookieHeader());
   }
 
   // ── POST /api/auth/register ────────────────────────────────────────────────
@@ -512,7 +530,7 @@ async function api(req, res, url) {
     const newUser = database.prepare(
       "SELECT id, name, email, level, created_at, email_verified, verified_at FROM users WHERE id = ?"
     ).get(userId);
-    return send(res, 201, { token: sessionToken, user: publicUser(newUser) });
+    return send(res, 201, { token: sessionToken, user: publicUser(newUser) }, authCookieHeader(sessionToken));
   }
 
   // ── POST /api/auth/login ───────────────────────────────────────────────────
@@ -528,7 +546,7 @@ async function api(req, res, url) {
       return send(res, 401, { error: "E-posta veya şifre hatalı." });
     }
     const sessionToken = createSession(user.id);
-    return send(res, 200, { token: sessionToken, user: publicUser(user) });
+    return send(res, 200, { token: sessionToken, user: publicUser(user) }, authCookieHeader(sessionToken));
   }
 
   // ── GET /api/auth/verify-email?token=... ──────────────────────────────────
@@ -1150,7 +1168,7 @@ async function api(req, res, url) {
     }
 
     const sessionToken = createSession(user.id);
-    return send(res, 200, { token: sessionToken, user: publicUser(user) });
+    return send(res, 200, { token: sessionToken, user: publicUser(user) }, authCookieHeader(sessionToken));
   }
 
   // ── POST /api/auth/oauth ──────────────────────────────────────────────────
@@ -1172,40 +1190,75 @@ async function api(req, res, url) {
     }
 
     const sessionToken = createSession(user.id);
-    return send(res, 200, { token: sessionToken, user: publicUser(user) });
+    return send(res, 200, { token: sessionToken, user: publicUser(user) }, authCookieHeader(sessionToken));
   }
 
   return send(res, 404, { error: "API endpoint bulunamadı." });
 }
 
-// ─── Statik Dosya Sunucu ──────────────────────────────────────────────────────
+// ─── Statik Dosya Sunucu & Rota Koruması ──────────────────────────────────────
 function staticFile(req, res, url) {
-  const requested = url.pathname === "/admin" ? "/index.html" : url.pathname === "/" ? "/landing.html" : url.pathname === "/ogren" ? "/index.html" : url.pathname;
-  const file      = resolve(root, "." + normalize(requested));
-  if (relative(root, file).startsWith("..")) return send(res, 403, { error: "Forbidden" });
+  const pathname = url.pathname;
+  const ext = extname(pathname);
 
   // Hassas dosyaların ve veritabanının doğrudan indirilmesini engelle
   const blocked = [".env", ".sqlite", ".db", ".py", "users.json"];
-  if (blocked.some((b) => file.toLowerCase().includes(b))) {
+  if (blocked.some((b) => pathname.toLowerCase().includes(b))) {
     return send(res, 403, { error: "Forbidden" });
   }
-  if (!existsSync(file)) {
-    if (!extname(url.pathname)) {
-      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-      return res.end(readFileSync(join(root, "index.html")));
-    }
-    return send(res, 404, { error: "Dosya bulunamadı." });
+
+  // Statik dosya varlıkları (.js, .css, .json, .png, .jpg, .svg, .ico, fontlar vb.)
+  if (ext && ext !== ".html") {
+    const file = resolve(root, "." + normalize(pathname));
+    if (relative(root, file).startsWith("..")) return send(res, 403, { error: "Forbidden" });
+    if (!existsSync(file)) return send(res, 404, { error: "Dosya bulunamadı." });
+
+    const types = {
+      ".js":    "text/javascript",
+      ".css":   "text/css",
+      ".json":  "application/json",
+      ".svg":   "image/svg+xml",
+      ".png":   "image/png",
+      ".jpg":   "image/jpeg",
+      ".jpeg":  "image/jpeg",
+      ".ico":   "image/x-icon",
+      ".woff":  "font/woff",
+      ".woff2": "font/woff2"
+    };
+    res.writeHead(200, {
+      "Content-Type": `${types[ext] || "application/octet-stream"}; charset=utf-8`
+    });
+    return res.end(readFileSync(file));
   }
-  const types = {
-    ".html": "text/html",
-    ".js":   "text/javascript",
-    ".css":  "text/css",
-    ".json": "application/json"
-  };
-  res.writeHead(200, {
-    "Content-Type": `${types[extname(file)] || "application/octet-stream"}; charset=utf-8`
-  });
-  res.end(readFileSync(file));
+
+  // ── Sayfa Rotaları (HTML) & Authentication / Authorization ─────────────────
+  // 1. Ana sayfa ("/") - Misafir ve oturum açmış tüm kullanıcılar için landing page
+  if (pathname === "/" || pathname === "/landing.html") {
+    const file = resolve(root, "./landing.html");
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+    return res.end(readFileSync(file));
+  }
+
+  // 2. Korumalı Sayfa Rotaları (/ogren, /ayarlar, /settings, /profil, /admin, /index.html vb.)
+  // Misafir modundaki (çıkış yapmış veya giriş yapmamış) kullanıcılar SADECE "/" rotasında kalabilir!
+  const user = currentUser(req);
+  if (!user) {
+    res.writeHead(302, { Location: "/" });
+    return res.end();
+  }
+
+  // 3. Admin Paneli Authorization Kontrolü
+  if (pathname === "/admin" || pathname === "/admin.html") {
+    if (user.email !== adminEmail) {
+      res.writeHead(302, { Location: "/ogren" });
+      return res.end();
+    }
+  }
+
+  // Oturum açmış ve yetkili kullanıcılar için ana uygulama arayüzü sunulur
+  const file = resolve(root, "./index.html");
+  res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+  return res.end(readFileSync(file));
 }
 
 // ─── HTTP Sunucusu ────────────────────────────────────────────────────────────

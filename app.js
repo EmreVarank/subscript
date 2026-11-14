@@ -36,6 +36,7 @@ let currentStreak = 0;
 let maxStreak = 0;
 let firstTrySuccessCount = 0;
 let isCurrentPartFirstTry = true;
+let currentClipDocTitle = "subscript. — İngilizce Dinleme Pratiği";
 
 // ─── DOM helpers ──────────────────────────────────────────────────────────────
 const $ = (id) => document.getElementById(id);
@@ -296,6 +297,7 @@ function startLoopMonitor() {
 }
 
 function play(fromStart = false) {
+  if (sectionForPath(window.location.pathname) !== "learn") return;
   if (!playerReady) return;
   const group = groups[current];
 
@@ -315,6 +317,7 @@ function play(fromStart = false) {
 }
 
 function togglePlayPause() {
+  if (sectionForPath(window.location.pathname) !== "learn") return;
   if (!playerReady) return;
   const state = player.getPlayerState();
   if (state === 1) { // PLAYING
@@ -552,16 +555,18 @@ function launchConfetti() {
 // ─── Klavye Kısayolları (Keyboard Shortcuts) ──────────────────────────────────
 function setupKeyboardShortcuts() {
   window.addEventListener("keydown", (e) => {
-    // Eğer kullanıcı aktif olarak bir input içinde değilse veya Space tuşuna basmışsa
+    // Sadece öğrenme sayfasındayken kısayollar geçerlidir
+    if (sectionForPath(window.location.pathname) !== "learn") return;
     const targetTag = e.target.tagName.toLowerCase();
+    if (targetTag === "input" || targetTag === "textarea") return;
 
-    // Space: Oynat / Duraklat (Input içinde değilken)
-    if (e.code === "Space" && targetTag !== "input") {
+    // Space: Oynat / Duraklat
+    if (e.code === "Space") {
       e.preventDefault();
       togglePlayPause();
     }
     // R tuşu: Mevcut parçayı başa sar
-    else if ((e.key === "r" || e.key === "R") && targetTag !== "input") {
+    else if (e.key === "r" || e.key === "R") {
       e.preventDefault();
       play(true);
     }
@@ -667,7 +672,10 @@ async function loadCatalog() {
 }
 
 async function ensureAuthenticated() {
-  if (!authToken) return false;
+  if (!authToken) {
+    window.location.replace("/");
+    return false;
+  }
   try {
     authUser = (await apiRequest("/api/me")).user;
     return true;
@@ -675,6 +683,8 @@ async function ensureAuthenticated() {
     localStorage.removeItem("subscript_token");
     sessionStorage.removeItem("subscript_token");
     authToken = "";
+    document.cookie = "subscript_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0";
+    window.location.replace("/");
     return false;
   }
 }
@@ -833,9 +843,11 @@ async function submitLogin(event) {
     if ($("loginRemember").checked) {
       localStorage.setItem("subscript_token", authToken);
       sessionStorage.removeItem("subscript_token");
+      document.cookie = `subscript_token=${authToken}; Path=/; Max-Age=2592000; SameSite=Lax`;
     } else {
       sessionStorage.setItem("subscript_token", authToken);
       localStorage.removeItem("subscript_token");
+      document.cookie = `subscript_token=${authToken}; Path=/; SameSite=Lax`;
     }
     if (authUser.name) localStorage.setItem("subscript_name", authUser.name);
     closeLoginModal();
@@ -932,7 +944,7 @@ function routeForSection(section) {
 function sectionForPath(pathname) {
   if (pathname === "/profil") return "profile";
   if (pathname === "/admin") return "admin";
-  if (pathname === "/settings" || pathname.startsWith("/settings/")) return "settings";
+  if (pathname === "/settings" || pathname.startsWith("/settings/") || pathname === "/ayarlar" || pathname.startsWith("/ayarlar/")) return "settings";
   return "learn";
 }
 
@@ -954,6 +966,10 @@ function showSettingsPage(page = settingsPageForPath(window.location.pathname)) 
 }
 
 function showSection(section, updateUrl = true) {
+  if (!authToken) {
+    window.location.replace("/");
+    return;
+  }
   if (section === "admin" && !authUser?.isAdmin) {
     section = "learn";
   }
@@ -961,6 +977,18 @@ function showSection(section, updateUrl = true) {
   const isLearn = section === "learn";
   const isAdmin = section === "admin";
   const isSettings = section === "settings";
+
+  // Öğren rotasından başka bir sayfaya geçiliyorsa video ve döngü derhal durdurulur
+  if (!isLearn) {
+    stopLoopMonitor();
+    if (player && typeof player.pauseVideo === "function") {
+      try {
+        player.pauseVideo();
+      } catch (e) {}
+    }
+    updatePlayUI(false);
+  }
+
   document.querySelectorAll(".side-nav-item").forEach((navItem) => {
     navItem.classList.toggle("active", navItem.dataset.section === section);
   });
@@ -973,16 +1001,43 @@ function showSection(section, updateUrl = true) {
   $("libraryTriggerBtn").hidden = !isLearn;
   const headerTitle = document.querySelector(".header-context strong");
   if (headerTitle) headerTitle.textContent = isProfile ? "Profil" : isAdmin ? "Admin" : isSettings ? "Ayarlar" : "Öğren";
-  if (isProfile) { updateProfileUI(); loadUserStats(); }
-  if (isSettings) { updateProfileUI(); showSettingsPage(); }
-  if (isAdmin) loadAdminView();
-  if (isLearn) ensureLearnView();
+
+  if (isProfile) {
+    document.title = "subscript. — Profil";
+    updateProfileUI();
+    loadUserStats();
+  }
+  if (isSettings) {
+    const pageTitles = { account: "Hesap", profile: "Profil", courses: "Kurslar" };
+    const currentPage = settingsPageForPath(window.location.pathname);
+    document.title = `subscript. — Ayarlar · ${pageTitles[currentPage] || "Hesap"}`;
+    updateProfileUI();
+    showSettingsPage(currentPage);
+  }
+  if (isAdmin) {
+    document.title = "subscript. — Yönetim Paneli";
+    loadAdminView();
+  }
+  if (isLearn) {
+    document.title = currentClipDocTitle;
+    setupCinematicOnboarding();
+    ensureLearnView();
+  }
+
   if (updateUrl && window.location.pathname !== routeForSection(section)) {
     const url = new URL(window.location);
     url.pathname = section === "settings"
       ? `/settings/${settingsPageForPath(window.location.pathname)}`
       : routeForSection(section);
+    if (!isLearn) {
+      url.search = ""; // Öğren menüsü haricinde arama/klip parametresi (?data=...) yer alamaz
+    }
     window.history.pushState({ section }, "", url);
+  } else if (!isLearn && window.location.search) {
+    // Öğren haricinde sayfada kalan arama parametrelerini temizle
+    const cleanUrl = new URL(window.location);
+    cleanUrl.search = "";
+    window.history.replaceState({ section }, "", cleanUrl);
   }
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -1139,6 +1194,7 @@ function setupNavigation() {
               authToken = result.token;
               authUser = result.user;
               localStorage.setItem("subscript_token", authToken);
+              document.cookie = `subscript_token=${authToken}; Path=/; Max-Age=2592000; SameSite=Lax`;
               if (authUser.name) localStorage.setItem("subscript_name", authUser.name);
               closeLoginModal();
               updateProfileUI();
@@ -1170,6 +1226,7 @@ function setupNavigation() {
         authToken = result.token;
         authUser = result.user;
         localStorage.setItem("subscript_token", authToken);
+        document.cookie = `subscript_token=${authToken}; Path=/; Max-Age=2592000; SameSite=Lax`;
         if (authUser.name) localStorage.setItem("subscript_name", authUser.name);
         closeLoginModal();
         updateProfileUI();
@@ -1233,7 +1290,7 @@ function setupNavigation() {
   // ── Ayarlar route yönetimi ────────────────────────────────────────────────
   const openSettingsModal = (page = "account") => {
     if (!authToken) {
-      openLoginModal();
+      window.location.replace("/");
       return;
     }
     $("profileMenu").hidden = true;
@@ -1264,6 +1321,7 @@ function setupNavigation() {
 
     const url = new URL(window.location);
     url.pathname = `/settings/${page}`;
+    url.search = "";
     window.history.pushState({ section: "settings", page }, "", url);
     showSection("settings", false);
   };
@@ -1467,8 +1525,9 @@ function setupNavigation() {
       localStorage.removeItem("subscript_name");
       localStorage.removeItem("subscript_level");
       localStorage.removeItem("subscript_avatar_color");
+      document.cookie = "subscript_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0";
       $("profileMenu").hidden = true;
-      updateProfileUI();
+      window.location.href = "/";
     }
   });
   document.addEventListener("keydown", (event) => {
@@ -1596,7 +1655,10 @@ async function loadClip(dataFile) {
   const catalogItem = globalCatalog.find((c) => c.id === dataFile);
   const level = (catalogItem && catalogItem.level) || data.level || "B1";
 
-  document.title = `loop. — ${data.title} (${level})`;
+  currentClipDocTitle = `subscript. — ${data.title} (${level})`;
+  if (sectionForPath(window.location.pathname) === "learn") {
+    document.title = currentClipDocTitle;
+  }
 
   render();
   if (player && playerReady) {
@@ -1608,17 +1670,20 @@ async function loadClip(dataFile) {
 }
 
 async function init() {
+  const authenticated = await ensureAuthenticated();
+  if (!authenticated) {
+    window.location.replace("/");
+    return;
+  }
   setupAuth();
   setupNavigation();
   const requestedSection = sectionForPath(window.location.pathname);
-  showSection(requestedSection, false);
-  const authenticated = await ensureAuthenticated();
+  showSection(requestedSection === "admin" && !authUser?.isAdmin ? "learn" : requestedSection, false);
   updateProfileUI();
-  if (authenticated) authBackdrop.classList.remove("open");
-  showSection(authenticated && requestedSection === "admin" ? "admin" : requestedSection === "admin" ? "learn" : requestedSection, false);
+  if (authBackdrop) authBackdrop.classList.remove("open");
 
   // E-posta doğrulama banner'ı
-  if (authenticated && authUser && !authUser.emailVerified) {
+  if (authUser && !authUser.emailVerified) {
     const banner = document.createElement('div');
     banner.id = 'verifyBanner';
     banner.style.cssText = 'background:#f97316;color:#fff;text-align:center;padding:8px 16px;font-size:13px;font-weight:600;cursor:default;';
@@ -1631,8 +1696,10 @@ async function init() {
     }
     return;
   }
-  setupCinematicOnboarding();
-  await ensureLearnView();
+  if (requestedSection === "learn") {
+    setupCinematicOnboarding();
+    await ensureLearnView();
+  }
   // Event listeners for Library
   if ($("libraryTriggerBtn")) $("libraryTriggerBtn").addEventListener("click", openLibraryModal);
   if ($("changeClipLink")) $("changeClipLink").addEventListener("click", openLibraryModal);
@@ -1874,13 +1941,21 @@ function initYouTube(videoId) {
         onReady: () => {
           playerReady = true;
           disableSubtitles();
-          play();
+          if (sectionForPath(window.location.pathname) === "learn") {
+            play();
+          }
         },
         onApiChange: () => {
           disableSubtitles();
         },
         onStateChange: (event) => {
           disableSubtitles();
+          if (sectionForPath(window.location.pathname) !== "learn" && event.data === YT.PlayerState.PLAYING) {
+            try { player.pauseVideo(); } catch (e) {}
+            stopLoopMonitor();
+            updatePlayUI(false);
+            return;
+          }
           if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
             updatePlayUI(false);
             stopLoopMonitor();

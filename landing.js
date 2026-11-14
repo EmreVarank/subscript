@@ -82,6 +82,18 @@ if (existingToken && landingLoginBtn) {
   landingLoginBtn.addEventListener("click", () => openAuthModal("login"));
 }
 
+// Misafir modundayken korumalı rotalara geçiş yapılmasını engelle (Modal aç)
+document.addEventListener("click", (e) => {
+  const link = e.target.closest('a[href^="/ogren"], a[href^="/profil"], a[href^="/settings"], a[href^="/ayarlar"], a[href^="/admin"]');
+  if (link) {
+    const token = localStorage.getItem("subscript_token") || sessionStorage.getItem("subscript_token");
+    if (!token) {
+      e.preventDefault();
+      openAuthModal("login");
+    }
+  }
+});
+
 function setAuthFieldError(id, msg) {
   const el = document.getElementById(id);
   if (el) el.textContent = msg || "";
@@ -248,9 +260,11 @@ if (authForm) {
       if (remember) {
         localStorage.setItem("subscript_token", data.token);
         sessionStorage.removeItem("subscript_token");
+        document.cookie = `subscript_token=${data.token}; Path=/; Max-Age=2592000; SameSite=Lax`;
       } else {
         sessionStorage.setItem("subscript_token", data.token);
         localStorage.removeItem("subscript_token");
+        document.cookie = `subscript_token=${data.token}; Path=/; SameSite=Lax`;
       }
       if (data.user?.name) {
         localStorage.setItem("subscript_name", data.user.name);
@@ -303,6 +317,7 @@ if (landingGoogleBtn) {
               if (!gRes.ok) throw new Error(gData.error || "Google girişi başarısız.");
 
               localStorage.setItem("subscript_token", gData.token);
+              document.cookie = `subscript_token=${gData.token}; Path=/; Max-Age=2592000; SameSite=Lax`;
               if (gData.user?.name) localStorage.setItem("subscript_name", gData.user.name);
               localStorage.setItem("subscript_onboarding_seen", "1");
               window.location.href = "/ogren";
@@ -335,6 +350,7 @@ if (landingGoogleBtn) {
         if (!testRes.ok) throw new Error(testData.error || "Giriş yapılamadı.");
 
         localStorage.setItem("subscript_token", testData.token);
+        document.cookie = `subscript_token=${testData.token}; Path=/; Max-Age=2592000; SameSite=Lax`;
         if (testData.user?.name) localStorage.setItem("subscript_name", testData.user.name);
         localStorage.setItem("subscript_onboarding_seen", "1");
         window.location.href = "/ogren";
