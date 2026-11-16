@@ -12,14 +12,20 @@ const backdrop = document.getElementById("landingBackdrop");
 const clipGrid = document.getElementById("landingClipGrid");
 const count = document.getElementById("heroClipCount");
 let current = 0;
+const escapeHtml = (value) => String(value ?? "")
+  .replace(/&/g, "&amp;")
+  .replace(/</g, "&lt;")
+  .replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;")
+  .replace(/'/g, "&#039;");
 
 function renderLibrary(libraryClips) {
   if (!clipGrid) return;
   clipGrid.innerHTML = libraryClips.map((clip, index) => `
     <a class="landing-clip" href="/ogren?data=${encodeURIComponent(clip.id || clip.title)}">
       <span class="landing-clip-index">${String(index + 1).padStart(2, "0")}</span>
-      <img src="https://img.youtube.com/vi/${clip.youtubeId}/mqdefault.jpg" alt="${clip.title}" loading="lazy" />
-      <div><strong>${clip.title}</strong><small>${clip.level || "B1"} · Dinleme pratiği</small></div>
+      <img src="https://img.youtube.com/vi/${escapeHtml(clip.youtubeId)}/mqdefault.jpg" alt="${escapeHtml(clip.title)}" loading="lazy" />
+      <div><strong>${escapeHtml(clip.title)}</strong><small>${escapeHtml(clip.level || "B1")} · Dinleme pratiği</small></div>
     </a>
   `).join("");
 }
@@ -71,14 +77,7 @@ const landingGoogleBtn = document.getElementById("landingGoogleBtn");
 
 let authMode = "login"; // "login" | "register"
 
-// Giriş durumunu kontrol et
-const existingToken = localStorage.getItem("subscript_token") || sessionStorage.getItem("subscript_token");
-if (existingToken && landingLoginBtn) {
-  landingLoginBtn.innerHTML = 'Öğrenmeye git <span>↗</span>';
-  landingLoginBtn.addEventListener("click", () => {
-    window.location.href = "/ogren";
-  });
-} else if (landingLoginBtn) {
+if (landingLoginBtn) {
   landingLoginBtn.addEventListener("click", () => openAuthModal("login"));
 }
 
@@ -86,11 +85,7 @@ if (existingToken && landingLoginBtn) {
 document.addEventListener("click", (e) => {
   const link = e.target.closest('a[href^="/ogren"], a[href^="/profil"], a[href^="/settings"], a[href^="/ayarlar"], a[href^="/admin"]');
   if (link) {
-    const token = localStorage.getItem("subscript_token") || sessionStorage.getItem("subscript_token");
-    if (!token) {
-      e.preventDefault();
-      openAuthModal("login");
-    }
+    // Korumalı rota yetkilendirmesi sunucudaki HttpOnly cookie ile yapılır.
   }
 });
 
@@ -130,7 +125,9 @@ function setAuthMode(mode) {
 
   if (tabLogin) tabLogin.classList.toggle("active", !isRegister);
   if (tabRegister) tabRegister.classList.toggle("active", isRegister);
-  if (groupName) groupName.hidden = !isRegister;
+  if (groupName) groupName.hidden = false;
+  const groupEmail = document.getElementById("groupEmail");
+  if (groupEmail) groupEmail.hidden = !isRegister;
 
   if (authModalTitle) {
     authModalTitle.textContent = isRegister ? "Kendi hesabını oluştur." : "Kaldığın yerden devam et.";
@@ -231,12 +228,12 @@ if (authForm) {
     const password = inputPassword ? inputPassword.value : "";
     const remember = inputRemember ? inputRemember.checked : true;
 
-    setAuthFieldError("nameError", authMode === "register" && !name ? "Adını yazmalısın." : "");
-    setAuthFieldError("emailError", !email ? "E-posta adresini yaz." : !email.includes("@") ? "Geçerli bir e-posta gir." : "");
+    setAuthFieldError("nameError", !name ? "Kullanıcı adını yazmalısın." : "");
+    setAuthFieldError("emailError", authMode === "register" && (!email ? "E-posta adresini yaz." : !email.includes("@") ? "Geçerli bir e-posta gir." : ""));
     setAuthFieldError("passwordError", !password ? "Şifreni yaz." : password.length < 8 ? "Şifre en az 8 karakter olmalı." : "");
     setAuthSubmitError("");
 
-    if (!email || !email.includes("@") || !password || password.length < 8 || (authMode === "register" && !name)) {
+    if (!name || !password || password.length < 8 || (authMode === "register" && (!email || !email.includes("@")))) {
       return;
     }
 
@@ -245,7 +242,7 @@ if (authForm) {
       const endpoint = authMode === "register" ? "/api/auth/register" : "/api/auth/login";
       const payload = authMode === "register"
         ? { name, email, password, remember }
-        : { email, password, remember };
+        : { name, password, remember };
 
       const res = await fetch(endpoint, {
         method: "POST",
@@ -257,15 +254,6 @@ if (authForm) {
         throw new Error(data.error || "İşlem tamamlanamadı. Lütfen tekrar deneyin.");
       }
 
-      if (remember) {
-        localStorage.setItem("subscript_token", data.token);
-        sessionStorage.removeItem("subscript_token");
-        document.cookie = `subscript_token=${data.token}; Path=/; Max-Age=2592000; SameSite=Lax`;
-      } else {
-        sessionStorage.setItem("subscript_token", data.token);
-        localStorage.removeItem("subscript_token");
-        document.cookie = `subscript_token=${data.token}; Path=/; SameSite=Lax`;
-      }
       if (data.user?.name) {
         localStorage.setItem("subscript_name", data.user.name);
       }
@@ -316,8 +304,6 @@ if (landingGoogleBtn) {
               const gData = await gRes.json();
               if (!gRes.ok) throw new Error(gData.error || "Google girişi başarısız.");
 
-              localStorage.setItem("subscript_token", gData.token);
-              document.cookie = `subscript_token=${gData.token}; Path=/; Max-Age=2592000; SameSite=Lax`;
               if (gData.user?.name) localStorage.setItem("subscript_name", gData.user.name);
               localStorage.setItem("subscript_onboarding_seen", "1");
               window.location.href = "/ogren";
@@ -333,28 +319,7 @@ if (landingGoogleBtn) {
         return;
       }
 
-      // Test modu
-      const userChoice = confirm(
-        "Google Giriş Entegrasyonu:\n\n" +
-        "Gerçek Google hesabı seçimi için .env dosyasında GOOGLE_CLIENT_ID tanımlanmalıdır.\n\n" +
-        "Şimdi test hesabıyla giriş yapıp öğrenmeye geçmek ister misiniz?"
-      );
-
-      if (userChoice) {
-        const testRes = await fetch("/api/auth/oauth", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ provider: "google", name: "Google Kullanıcısı" })
-        });
-        const testData = await testRes.json();
-        if (!testRes.ok) throw new Error(testData.error || "Giriş yapılamadı.");
-
-        localStorage.setItem("subscript_token", testData.token);
-        document.cookie = `subscript_token=${testData.token}; Path=/; Max-Age=2592000; SameSite=Lax`;
-        if (testData.user?.name) localStorage.setItem("subscript_name", testData.user.name);
-        localStorage.setItem("subscript_onboarding_seen", "1");
-        window.location.href = "/ogren";
-      }
+      throw new Error("Google ile giriş henüz yapılandırılmamış. Lütfen e-posta ile giriş yapın.");
     } catch (err) {
       setAuthSubmitError(err.message || "Google girişi başlatılamadı.");
     } finally {

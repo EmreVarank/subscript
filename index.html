@@ -4,14 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>subscript — İngilizce Dinleme Pratiği</title>
-    <script>
-      (function() {
-        var token = localStorage.getItem("subscript_token") || sessionStorage.getItem("subscript_token");
-        if (!token) {
-          window.location.replace("/");
-        }
-      })();
-    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Sofia+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -21,6 +13,7 @@
     <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   </head>
   <body>
+    <div class="app-notice" id="appNotice" role="status" aria-live="polite" hidden></div>
     <div class="auth-backdrop" id="authBackdrop">
       <section class="onboarding-shell" aria-live="polite">
         <div class="onboarding-intro">
@@ -232,22 +225,22 @@
           <h2 id="loginTitle">Kaldığın yerden devam et.</h2>
           <p class="login-form-subtitle">İlerlemeni ve favori kliplerini kaydetmek için giriş yap.</p>
 
-          <div class="flex-column login-name-field" id="loginNameField" hidden>
-            <label for="loginName">Adın</label>
+          <div class="flex-column login-name-field" id="loginNameField">
+            <label for="loginName">Kullanıcı adı</label>
           </div>
-          <div class="inputForm login-name-field" id="loginNameInput" hidden>
-            <input id="loginName" name="name" type="text" class="input" autocomplete="name" placeholder="Adın" />
+          <div class="inputForm login-name-field" id="loginNameInput">
+            <input id="loginName" name="name" type="text" class="input" autocomplete="username" placeholder="Kullanıcı adın" />
           </div>
           <p class="login-field-error login-name-field" id="loginNameError" role="alert"></p>
 
-          <div class="flex-column">
+          <div class="flex-column login-email-field" hidden>
             <label for="loginEmail">E-posta</label>
           </div>
-          <div class="inputForm">
+          <div class="inputForm login-email-field" hidden>
             <svg height="20" viewBox="0 0 32 32" width="20" aria-hidden="true"><path d="m30.853 13.87a15 15 0 0 0-29.729 4.082 15.1 15.1 0 0 0 12.876 12.918 15.6 15.6 0 0 0 2.016.13 14.85 14.85 0 0 0 7.715-2.145 1 1 0 1 0-1.031-1.711 13.007 13.007 0 1 1 5.458-6.529 2.149 2.149 0 0 1-4.158-.759v-10.856a1 1 0 0 0-2 0v1.726a8 8 0 1 0 .2 10.325 4.135 4.135 0 0 0 7.83.274 15.2 15.2 0 0 0 .823-7.455zM16 22a6 6 0 1 1 6-6 6.006 6.006 0 0 1-6 6z"/></svg>
             <input id="loginEmail" name="email" type="email" class="input" autocomplete="email" inputmode="email" placeholder="ornek@mail.com" />
           </div>
-          <p class="login-field-error" id="loginEmailError" role="alert"></p>
+          <p class="login-field-error login-email-field" id="loginEmailError" role="alert" hidden></p>
 
           <div class="flex-column">
             <label for="loginPassword">Şifre</label>
@@ -297,13 +290,6 @@
 
           <section class="settings-page" data-settings-page="account">
             <div class="settings-card">
-              <div class="settings-card-heading"><div><p class="eyebrow">KİŞİSEL BİLGİLER</p><h2>Hesap</h2></div><span class="settings-card-icon">◎</span></div>
-              <form id="updateNameForm" class="settings-form">
-                <label for="settingsNameInput">Ad soyad</label>
-                <input id="settingsNameInput" type="text" placeholder="Adınız" />
-                <button type="submit" class="settings-primary-button">Adı güncelle</button>
-              </form>
-              <div class="settings-divider"></div>
               <div class="settings-card-heading compact"><div><p class="eyebrow">ABONELİK</p><h2>Planın</h2></div><span id="settingsPlanBadge" class="settings-plan-badge">FREE</span></div>
               <p class="settings-muted">Pro plana geçerek sınırsız film/dizi sahnesi ve yapay zeka ipuçlarına eriş.</p>
               <button type="button" id="upgradePlanBtn" class="settings-upgrade-button">Pro plana yükselt</button>
@@ -313,6 +299,16 @@
           <section class="settings-page" data-settings-page="profile" hidden>
             <div class="settings-card">
               <div class="settings-card-heading"><div><p class="eyebrow">GÖRÜNÜM</p><h2>Profil</h2></div><span class="settings-card-icon">◉</span></div>
+              <form id="updateNameForm" class="settings-form">
+                <label for="settingsDisplayNameInput">Ad soyad</label>
+                <input id="settingsDisplayNameInput" type="text" placeholder="Adınız" maxlength="80" />
+                <label for="settingsNameInput">Kullanıcı adı</label>
+                <input id="settingsNameInput" type="text" placeholder="Kullanıcı adınız" maxlength="80" autocomplete="username" />
+                <label for="settingsEmailInput">E-posta</label>
+                <input id="settingsEmailInput" type="email" placeholder="ornek@mail.com" maxlength="254" autocomplete="email" />
+                <p class="settings-muted">E-posta değişince yeni adresini doğrulaman gerekir.</p>
+                <button type="submit" class="settings-primary-button">Profil bilgilerini kaydet</button>
+              </form>
               <div class="settings-divider"></div>
               <form id="updatePasswordForm" class="settings-form">
                 <label for="settingsCurrentPass">Şifre değiştir</label>
@@ -450,9 +446,18 @@
         <div class="profile-view-grid">
           <div class="profile-main-column">
             <section class="profile-hero-card">
-              <div class="profile-cover">
-                <span class="profile-cover-word">subscript</span>
-                <button type="button" class="profile-edit-button" aria-label="Profili düzenle">✎</button>
+              <div class="profile-identity">
+                <span class="avatar avatar-profile-page" id="profilePageAvatar">S</span>
+                <div>
+                  <h1 id="profilePageName">Misafir</h1>
+                  <p id="profilePageEmail">Misafir olarak devam ediyorsun</p>
+                  <p class="profile-member-date">Dinleme laboratuvarına hoş geldin</p>
+                </div>
+              </div>
+              <div class="profile-meta-row">
+                <span><strong id="profileClipCount">5</strong> Klip</span>
+                <span><strong id="profileCompletedCount">0</strong> Tamamlanan</span>
+                <span id="profilePageLevel">Seviye seçilmedi</span>
               </div>
               <div class="profile-avatar-builder">
                 <div class="profile-avatar-builder-heading">
@@ -483,19 +488,6 @@
                     <a class="dicebear-attribution" href="https://www.dicebear.com/" target="_blank" rel="noreferrer">Avatarlar DiceBear ile oluşturulur ↗</a>
                   </div>
                 </div>
-              </div>
-              <div class="profile-identity">
-                <span class="avatar avatar-profile-page" id="profilePageAvatar">S</span>
-                <div>
-                  <h1 id="profilePageName">Misafir</h1>
-                  <p id="profilePageEmail">Misafir olarak devam ediyorsun</p>
-                  <p class="profile-member-date">Dinleme laboratuvarına hoş geldin</p>
-                </div>
-              </div>
-              <div class="profile-meta-row">
-                <span><strong id="profileClipCount">5</strong> Klip</span>
-                <span><strong id="profileCompletedCount">0</strong> Tamamlanan</span>
-                <span id="profilePageLevel">Seviye seçilmedi</span>
               </div>
             </section>
 
@@ -532,6 +524,16 @@
           </div>
 
           <aside class="profile-side-column">
+            <section class="profile-section-card profile-resume-card">
+              <div class="profile-resume-topline">
+                <span class="profile-resume-icon" aria-hidden="true">🎬</span>
+                <span class="profile-resume-badge">DEVAM ET</span>
+              </div>
+              <p class="eyebrow">SON ÇALIŞMAN</p>
+              <h2 id="profileResumeTitle">Henüz başlamadın</h2>
+              <p id="profileResumeMeta">Bir klip seçerek ilk pratiğine başlayabilirsin.</p>
+              <button type="button" class="profile-action-button" data-section="learn">Çalışmaya dön <span>→</span></button>
+            </section>
             <section class="profile-section-card profile-about-card">
               <p class="eyebrow">PROFİL</p>
               <h2>Öğrenme tercihlerim</h2>
@@ -570,6 +572,9 @@
             <div class="video-controls">
               <button type="button" class="round-button" id="prevPartButton" title="Önceki parça (Shift + ←)" aria-label="Önceki parça">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+              </button>
+              <button type="button" class="round-button" id="nextPartButton" title="Sonraki parça (Shift + →)" aria-label="Sonraki parça">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
               </button>
               <button type="button" class="round-button" id="backButton" title="Başa sar (R)" aria-label="Başa dön">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
@@ -635,6 +640,17 @@
               <p class="library-sub">Çalışmak istediğin film veya dizi kesitini seç.</p>
             </div>
             <button type="button" class="close-modal-btn" id="closeLibraryBtn">✕</button>
+          </div>
+          <div class="library-filters">
+            <input type="search" id="librarySearch" placeholder="Klip ara..." autocomplete="off" />
+            <select id="libraryLevelFilter" aria-label="Seviye filtresi">
+              <option value="all">Tüm seviyeler</option>
+              <option value="A1">A1</option>
+              <option value="A2">A2</option>
+              <option value="B1">B1</option>
+              <option value="B2">B2</option>
+              <option value="C1">C1</option>
+            </select>
           </div>
           <div class="library-grid" id="libraryGrid">
             <!-- JavaScript dinamik dolduracak -->

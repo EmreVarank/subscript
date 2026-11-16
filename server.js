@@ -1,8 +1,8 @@
 // ─── Config & .env Yükleyici ──────────────────────────────────────────────────
 import { createServer } from "node:http";
-import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
 import { extname, join, normalize, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { connect as tlsConnect } from "node:tls";
@@ -44,7 +44,9 @@ if (process.env.DATABASE_URL) {
 
 const root = fileURLToPath(new URL(".", import.meta.url));
 const port = Number(process.env.PORT || 8080);
-const adminEmail = (process.env.ADMIN_EMAIL || "admin@subscript.local").toLowerCase();
+const adminEmail = (process.env.ADMIN_EMAIL || "admin@hotmail.com").toLowerCase();
+const allowedLevels = new Set(["A1", "A2", "B1", "B2", "C1"]);
+const allowedCheckoutPlans = new Set(["pro_monthly", "pro_yearly"]);
 const appUrl = process.env.APP_URL || `http://localhost:${port}`;
 const dataDir = join(root, "data");
 const usersFile = join(dataDir, "users.json");
@@ -115,6 +117,13 @@ database.exec(`
     source TEXT,
     created_at TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS daily_clip_usage (
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    usage_date TEXT NOT NULL,
+    clip_id TEXT NOT NULL,
+    PRIMARY KEY (user_id, usage_date, clip_id)
+  );
 `);
 
 // users tablosuna email_verified, verified_at, plan, daily_clips_used sütunlarını ekle (zaten varsa yoksay)
@@ -124,9 +133,27 @@ try { database.exec("ALTER TABLE users ADD COLUMN plan TEXT NOT NULL DEFAULT 'fr
 try { database.exec("ALTER TABLE users ADD COLUMN daily_clips_used INTEGER NOT NULL DEFAULT 0"); } catch {}
 try { database.exec("ALTER TABLE users ADD COLUMN last_active_date TEXT"); } catch {}
 try { database.exec("ALTER TABLE users ADD COLUMN avatar_color TEXT NOT NULL DEFAULT 'violet'"); } catch {}
+try { database.exec("ALTER TABLE users ADD COLUMN avatar_style TEXT NOT NULL DEFAULT 'lorelei'"); } catch {}
+try { database.exec("ALTER TABLE users ADD COLUMN avatar_seed TEXT"); } catch {}
+try { database.exec("ALTER TABLE users ADD COLUMN display_name TEXT"); } catch {}
 
 // ─── Yardımcı Fonksiyonlar ────────────────────────────────────────────────────
 const json       = (file) => JSON.parse(readFileSync(file, "utf8"));
+function writeAtomic(file, content) {
+  const temporaryFile = `${file}.${process.pid}.${randomBytes(6).toString("hex")}.tmp`;
+  try {
+    writeFileSync(temporaryFile, content, "utf8");
+    renameSync(temporaryFile, file);
+  } finally {
+    if (existsSync(temporaryFile)) unlinkSync(temporaryFile);
+  }
+}
+const escapeHtml = (value) => String(value ?? "")
+  .replace(/&/g, "&amp;")
+  .replace(/</g, "&lt;")
+  .replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;")
+  .replace(/'/g, "&#039;");
 const send       = (res, status, body, extraHeaders = {}) => {
   res.writeHead(status, {
     "Content-Type": "application/json; charset=utf-8",
@@ -134,16 +161,41 @@ const send       = (res, status, body, extraHeaders = {}) => {
   });
   res.end(status === 204 ? undefined : JSON.stringify(body));
 };
+class InvalidJsonError extends Error {}
+class RequestTooLargeError extends Error {}
 const authCookieHeader = (token, maxAgeSeconds = 30 * 24 * 60 * 60) => ({
-  "Set-Cookie": `subscript_token=${token}; Path=/; Max-Age=${maxAgeSeconds}; SameSite=Lax`
+  "Set-Cookie": `subscript_token=${token}; Path=/; Max-Age=${maxAgeSeconds}; HttpOnly; SameSite=Lax${process.env.NODE_ENV === "production" ? "; Secure" : ""}`
 });
 const clearAuthCookieHeader = () => ({
-  "Set-Cookie": "subscript_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; SameSite=Lax"
+  "Set-Cookie": `subscript_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; HttpOnly; SameSite=Lax${process.env.NODE_ENV === "production" ? "; Secure" : ""}`
 });
-const readBody   = async (req) => {
-  let body = "";
-  for await (const chunk of req) body += chunk;
-  return body ? JSON.parse(body) : {};
+const readBody   = async (req, maxBytes = 1_000_000) => {
+  const declaredSize = Number(req.headers["content-length"] || 0);
+  if (declaredSize > maxBytes) throw new RequestTooLargeError("Request body too large");
+  const chunks = [];
+  let size = 0;
+  for await (const chunk of req) {
+    size += chunk.length;
+    if (size > maxBytes) throw new RequestTooLargeError("Request body too large");
+    chunks.push(chunk);
+  }
+  const body = Buffer.concat(chunks).toString("utf8");
+  if (!body) return {};
+  try {
+    return JSON.parse(body);
+  } catch {
+    throw new InvalidJsonError("Invalid JSON request body");
+  }
+};
+const readRawBody = async (req, maxBytes = 1_000_000) => {
+  const chunks = [];
+  let size = 0;
+  for await (const chunk of req) {
+    size += chunk.length;
+    if (size > maxBytes) throw new RequestTooLargeError("Request body too large");
+    chunks.push(chunk);
+  }
+  return Buffer.concat(chunks);
 };
 const publicUser = ({ password_hash, passwordHash, ...user }) => ({
   ...user,
@@ -151,6 +203,9 @@ const publicUser = ({ password_hash, passwordHash, ...user }) => ({
   emailVerified: Boolean(user.email_verified),
   isAdmin: String(user.email || "").toLowerCase() === adminEmail,
   avatarColor: user.avatar_color || user.avatarColor || "violet",
+  avatarStyle: user.avatar_style || user.avatarStyle || "lorelei",
+  avatarSeed: user.avatar_seed || user.avatarSeed || user.name,
+  displayName: user.display_name || user.displayName || user.name,
   plan: user.plan || "free",
   dailyClipsUsed: user.daily_clips_used || 0
 });
@@ -168,8 +223,30 @@ const validPassword = (password, stored) => {
 const makeToken    = ()        => randomBytes(32).toString("hex");
 const tokenHash    = (value)   => createHash("sha256").update(value).digest("hex");
 const now          = ()        => new Date().toISOString();
+const applicationDate = (value = new Date()) => {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: process.env.APP_TIME_ZONE || "Europe/Istanbul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(value);
+  const fields = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  return `${fields.year}-${fields.month}-${fields.day}`;
+};
 const sessionExpiry = ()       => new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString();
 const hourExpiry   = ()        => new Date(Date.now() + 3_600_000).toISOString();
+
+function validStripeSignature(rawBody, signatureHeader, secret) {
+  if (!signatureHeader || !secret) return false;
+  const parts = Object.fromEntries(signatureHeader.split(",").map((part) => part.split("=", 2)));
+  const timestamp = Number(parts.t);
+  const signature = parts.v1;
+  if (!Number.isFinite(timestamp) || !signature || Math.abs(Date.now() / 1000 - timestamp) > 300) return false;
+  const expected = createHmac("sha256", secret).update(`${timestamp}.${rawBody.toString("utf8")}`).digest("hex");
+  const expectedBuffer = Buffer.from(expected, "hex");
+  const actualBuffer = Buffer.from(signature, "hex");
+  return expectedBuffer.length === actualBuffer.length && timingSafeEqual(expectedBuffer, actualBuffer);
+}
 
 // ─── Rate Limiter & Arka Plan İş Kuyruğu ───────────────────────────────────────
 const rateLimitMap = new Map(); // key -> { count, windowStart }
@@ -194,6 +271,16 @@ function checkRateLimit(key, maxRequests = 10, windowMs = 60_000) {
 function getClientIp(req) {
   return (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "unknown")
     .split(",")[0].trim();
+}
+
+function hasValidRequestOrigin(req) {
+  const origin = req.headers.origin;
+  if (!origin) return false;
+  try {
+    return new URL(origin).origin === new URL(appUrl).origin;
+  } catch {
+    return false;
+  }
 }
 
 // ─── E-posta Gönderimi (Yerleşik RFC SMTP & Dev Fallback) ──────────────────
@@ -313,6 +400,15 @@ function migrateUsers() {
 }
 migrateUsers();
 
+function cleanExpiredAuthRecords() {
+  const timestamp = now();
+  database.prepare("DELETE FROM sessions WHERE expires_at <= ?").run(timestamp);
+  database.prepare("DELETE FROM password_resets WHERE expires_at <= ? OR used = 1").run(timestamp);
+  database.prepare("DELETE FROM email_verifications WHERE expires_at <= ?").run(timestamp);
+}
+cleanExpiredAuthRecords();
+setInterval(cleanExpiredAuthRecords, 6 * 60 * 60 * 1000).unref();
+
 // ─── Auth Yardımcıları ────────────────────────────────────────────────────────
 function extractToken(req) {
   const value  = req.headers.authorization || "";
@@ -330,7 +426,8 @@ function currentUser(req) {
   if (!token) return null;
   const session = database.prepare(`
     SELECT users.id, users.name, users.email, users.level, users.created_at,
-           users.email_verified, users.verified_at, users.plan, users.daily_clips_used, users.last_active_date
+           users.email_verified, users.verified_at, users.plan, users.daily_clips_used, users.last_active_date,
+           users.avatar_color, users.avatar_style, users.avatar_seed, users.display_name
     FROM sessions
     JOIN users ON users.id = sessions.user_id
     WHERE sessions.token_hash = ? AND sessions.expires_at > ?
@@ -354,9 +451,61 @@ function findUserByEmail(email) {
     WHERE email = ?
   `).get(email);
 }
+function findUserByName(name) {
+  return database.prepare(`
+    SELECT id, name, email, password_hash, level, created_at, email_verified, verified_at
+    FROM users
+    WHERE LOWER(name) = LOWER(?)
+    LIMIT 1
+  `).get(name);
+}
 
 function catalog() {
   return json(join(root, "clips.json"));
+}
+function validateClipMetadata(body) {
+  const id = String(body.id || "").trim();
+  const title = String(body.title || "").trim();
+  const level = String(body.level || "").toUpperCase();
+  const youtubeId = String(body.youtubeId || "").trim();
+  const dataFile = String(body.dataFile || "").trim();
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id) || id.length > 80) return "Geçersiz klip kimliği.";
+  if (!title || title.length > 120) return "Klip başlığı 1-120 karakter arasında olmalı.";
+  if (!allowedLevels.has(level)) return "Geçersiz seviye.";
+  if (!/^[A-Za-z0-9_-]{6,20}$/.test(youtubeId)) return "Geçersiz YouTube video kimliği.";
+  const file = resolve(root, dataFile);
+  if (relative(root, file).startsWith("..") || !dataFile.endsWith(".json")) return "Geçersiz klip veri dosyası.";
+  if (!existsSync(file)) return "Klip veri dosyası bulunamadı.";
+  try {
+    const data = json(file);
+    if (!Array.isArray(data.groups)) return "Klip veri dosyası geçersiz.";
+  } catch {
+    return "Klip veri dosyası okunamadı.";
+  }
+  return null;
+}
+
+function validateGroups(groups) {
+  if (!Array.isArray(groups) || groups.length === 0 || groups.length > 120) {
+    return "Klip 1-120 parça içermelidir.";
+  }
+  for (const group of groups) {
+    if (!group || !Number.isFinite(group.start) || !Number.isFinite(group.end)
+      || group.start < 0 || group.end < group.start || group.end > 86_400
+      || !Array.isArray(group.sentences) || group.sentences.length === 0 || group.sentences.length > 20) {
+      return "Geçersiz klip parça yapısı.";
+    }
+    for (const sentence of group.sentences) {
+      const text = String(sentence?.text || "").trim();
+      if (!sentence || !Number.isFinite(sentence.start) || !Number.isFinite(sentence.end)
+        || sentence.start < group.start || sentence.end < sentence.start || sentence.end > group.end
+        || !text || text.length > 500 || !Array.isArray(sentence.blankIndexes)
+        || sentence.blankIndexes.some((index) => !Number.isInteger(index) || index < 0)) {
+        return "Geçersiz cümle yapısı.";
+      }
+    }
+  }
+  return null;
 }
 
 // ─── Sözlük Motoru ────────────────────────────────────────────────────────────
@@ -450,6 +599,14 @@ async function api(req, res, url) {
   const ip = getClientIp(req);
   const path = url.pathname.replace(/\/+$/, "") || "/";
 
+  // Cookie tabanlı oturumlarda dış sitelerden gelen durum değiştiren istekleri reddet.
+  // Bearer kullanan API istemcileri ve Stripe webhook'u bu kurala tabi değildir.
+  const unsafeMethod = ["POST", "PUT", "PATCH", "DELETE"].includes(req.method);
+  const hasSessionCookie = /(?:^|;\s*)subscript_token=/.test(req.headers.cookie || "");
+  if (unsafeMethod && hasSessionCookie && path !== "/api/subscription/webhook" && !hasValidRequestOrigin(req)) {
+    return send(res, 403, { error: "Geçersiz istek kaynağı." });
+  }
+
   // ── GET /api/clips ─────────────────────────────────────────────────────────
   if (req.method === "GET" && url.pathname === "/api/clips") {
     const user = currentUser(req);
@@ -496,7 +653,7 @@ async function api(req, res, url) {
     const password = String(body.password || "");
     const name     = String(body.name     || "").trim();
 
-    if (!name || !email.includes("@") || password.length < 8) {
+    if (!name || name.length > 80 || email.length > 254 || !email.includes("@") || password.length < 8 || password.length > 128) {
       return send(res, 400, { error: "Ad, geçerli e-posta ve en az 8 karakterli şifre gerekli." });
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -504,6 +661,9 @@ async function api(req, res, url) {
     }
     if (findUserByEmail(email)) {
       return send(res, 409, { error: "Bu e-posta zaten kayıtlı." });
+    }
+    if (findUserByName(name)) {
+      return send(res, 409, { error: "Bu kullanıcı adı zaten kullanılıyor." });
     }
 
     const userId = randomBytes(12).toString("hex");
@@ -518,19 +678,19 @@ async function api(req, res, url) {
     database.prepare(`
       INSERT INTO email_verifications (token, user_id, expires_at, created_at)
       VALUES (?, ?, ?, ?)
-    `).run(verifyToken, userId, hourExpiry(), createdAt);
+    `).run(tokenHash(verifyToken), userId, hourExpiry(), createdAt);
 
     await sendEmail({
       to: email,
       subject: "subscript. — E-posta adresini doğrula",
-      html: `<p>Merhaba ${name},</p><p>E-posta adresini doğrulamak için tıkla: <a href="${appUrl}/api/auth/verify-email?token=${verifyToken}">Doğrula</a></p><p>Bu link 1 saat geçerlidir.</p>`
+      html: `<p>Merhaba ${escapeHtml(name)},</p><p>E-posta adresini doğrulamak için tıkla: <a href="${appUrl}/api/auth/verify-email?token=${verifyToken}">Doğrula</a></p><p>Bu link 1 saat geçerlidir.</p>`
     });
 
     const sessionToken = createSession(userId);
     const newUser = database.prepare(
       "SELECT id, name, email, level, created_at, email_verified, verified_at FROM users WHERE id = ?"
     ).get(userId);
-    return send(res, 201, { token: sessionToken, user: publicUser(newUser) }, authCookieHeader(sessionToken));
+    return send(res, 201, { user: publicUser(newUser) }, authCookieHeader(sessionToken));
   }
 
   // ── POST /api/auth/login ───────────────────────────────────────────────────
@@ -541,12 +701,12 @@ async function api(req, res, url) {
     }
 
     const body = await readBody(req);
-    const user = findUserByEmail(String(body.email || "").trim().toLowerCase());
+    const user = findUserByName(String(body.name || "").trim());
     if (!user || !validPassword(String(body.password || ""), user.password_hash)) {
-      return send(res, 401, { error: "E-posta veya şifre hatalı." });
+      return send(res, 401, { error: "Kullanıcı adı veya şifre hatalı." });
     }
     const sessionToken = createSession(user.id);
-    return send(res, 200, { token: sessionToken, user: publicUser(user) }, authCookieHeader(sessionToken));
+    return send(res, 200, { user: publicUser(user) }, authCookieHeader(sessionToken));
   }
 
   // ── GET /api/auth/verify-email?token=... ──────────────────────────────────
@@ -556,7 +716,7 @@ async function api(req, res, url) {
 
     const record = database.prepare(
       "SELECT * FROM email_verifications WHERE token = ?"
-    ).get(verifyToken);
+    ).get(tokenHash(verifyToken));
 
     if (!record) return send(res, 400, { error: "Geçersiz doğrulama token'ı." });
     if (record.expires_at < now()) {
@@ -567,7 +727,7 @@ async function api(req, res, url) {
     database.prepare(
       "UPDATE users SET email_verified = 1, verified_at = ? WHERE id = ?"
     ).run(verifiedAt, record.user_id);
-    database.prepare("DELETE FROM email_verifications WHERE token = ?").run(verifyToken);
+    database.prepare("DELETE FROM email_verifications WHERE token = ?").run(tokenHash(verifyToken));
 
     return send(res, 200, { success: true, message: "E-posta doğrulandı." });
   }
@@ -583,23 +743,26 @@ async function api(req, res, url) {
 
     // Kullanıcı bulunsun ya da bulunmasın aynı yanıtı dön (user enumeration önleme)
     const user = findUserByEmail(email);
+    let resetTokenForTest = "";
     if (user) {
       const resetToken = makeToken();
+      resetTokenForTest = resetToken;
       database.prepare(`
         INSERT INTO password_resets (token, user_id, expires_at, used, created_at)
         VALUES (?, ?, ?, 0, ?)
-      `).run(resetToken, user.id, hourExpiry(), now());
+      `).run(tokenHash(resetToken), user.id, hourExpiry(), now());
 
       await sendEmail({
         to: email,
         subject: "subscript. — Şifrenizi sıfırlayın",
-        html: `<p>Merhaba ${user.name},</p><p>Şifrenizi sıfırlamak için tıklayın: <a href="${appUrl}/reset-password?token=${resetToken}">Şifreyi Sıfırla</a></p><p>Bu link 1 saat geçerlidir. Eğer bu isteği siz yapmadıysanız bu e-postayı görmezden gelebilirsiniz.</p>`
+        html: `<p>Merhaba ${escapeHtml(user.name)},</p><p>Şifrenizi sıfırlamak için tıklayın: <a href="${appUrl}/reset-password?token=${resetToken}">Şifreyi Sıfırla</a></p><p>Bu link 1 saat geçerlidir. Eğer bu isteği siz yapmadıysanız bu e-postayı görmezden gelebilirsiniz.</p>`
       });
     }
 
     return send(res, 200, {
       success: true,
-      message: "Eğer bu e-posta kayıtlıysa, sıfırlama bağlantısı gönderildi."
+      message: "Eğer bu e-posta kayıtlıysa, sıfırlama bağlantısı gönderildi.",
+      ...(process.env.NODE_ENV === "test" && user ? { resetToken: resetTokenForTest } : {})
     });
   }
 
@@ -618,7 +781,7 @@ async function api(req, res, url) {
 
     const record = database.prepare(
       "SELECT * FROM password_resets WHERE token = ?"
-    ).get(resetToken);
+    ).get(tokenHash(resetToken));
 
     if (!record)         return send(res, 400, { error: "Geçersiz şifre sıfırlama token'ı." });
     if (record.used)     return send(res, 400, { error: "Bu token zaten kullanılmış." });
@@ -629,7 +792,7 @@ async function api(req, res, url) {
       .run(hashPassword(password), record.user_id);
     // Token'ı kullanıldı olarak işaretle
     database.prepare("UPDATE password_resets SET used = 1 WHERE token = ?")
-      .run(resetToken);
+      .run(tokenHash(resetToken));
     // Kullanıcının tüm oturumlarını sil (güvenlik)
     database.prepare("DELETE FROM sessions WHERE user_id = ?").run(record.user_id);
 
@@ -640,6 +803,9 @@ async function api(req, res, url) {
   if (req.method === "POST" && url.pathname === "/api/progress") {
     const user = currentUser(req);
     if (!user) return send(res, 401, { error: "Giriş yapmalısın." });
+    if (!checkRateLimit(`progress:${user.id}:${ip}`, 120, 60_000)) {
+      return send(res, 429, { error: "Çok fazla ilerleme isteği. Lütfen biraz bekleyiniz." });
+    }
 
     const body       = await readBody(req);
     const clipId     = String(body.clipId     || "").trim();
@@ -647,9 +813,46 @@ async function api(req, res, url) {
     const completed  = body.completed  ? 1 : 0;
     const firstTry   = body.firstTry   ? 1 : 0;
     const attempts   = Number(body.attempts   || 1);
+    const clip       = catalog().find((item) => item.id === clipId);
 
-    if (!clipId || groupIndex < 0) {
-      return send(res, 400, { error: "clipId ve groupIndex gerekli." });
+    if (!clipId || !clip) {
+      return send(res, 400, { error: "Geçerli bir clipId gerekli." });
+    }
+    if (!Number.isInteger(groupIndex) || groupIndex < 0) {
+      return send(res, 400, { error: "Geçerli bir groupIndex gerekli." });
+    }
+    if (!Number.isInteger(attempts) || attempts < 1 || attempts > 100) {
+      return send(res, 400, { error: "Geçersiz deneme sayısı." });
+    }
+    const clipFile = resolve(root, clip.dataFile);
+    if (relative(root, clipFile).startsWith("..") || !existsSync(clipFile)) {
+      return send(res, 400, { error: "Klip verisi bulunamadı." });
+    }
+    const clipData = json(clipFile);
+    if (!Array.isArray(clipData.groups) || groupIndex >= clipData.groups.length) {
+      return send(res, 400, { error: "Geçersiz parça numarası." });
+    }
+
+    if (user.plan !== "pro") {
+      const usageDate = applicationDate();
+      const alreadyUsed = database.prepare(`
+        SELECT 1 FROM daily_clip_usage
+        WHERE user_id = ? AND usage_date = ? AND clip_id = ?
+      `).get(user.id, usageDate, clipId);
+      if (!alreadyUsed) {
+        const usedCount = database.prepare(`
+          SELECT COUNT(*) AS count FROM daily_clip_usage
+          WHERE user_id = ? AND usage_date = ?
+        `).get(user.id, usageDate).count;
+        if (usedCount >= 2) {
+          return send(res, 403, { error: "Ücretsiz planda günlük 2 klip sınırına ulaştın." });
+        }
+        database.prepare(`
+          INSERT INTO daily_clip_usage (user_id, usage_date, clip_id) VALUES (?, ?, ?)
+        `).run(user.id, usageDate, clipId);
+        database.prepare("UPDATE users SET daily_clips_used = ?, last_active_date = ? WHERE id = ?")
+          .run(usedCount + 1, usageDate, user.id);
+      }
     }
 
     const existing = database.prepare(
@@ -694,7 +897,7 @@ async function api(req, res, url) {
     if (!user) return send(res, 401, { error: "Giriş yapmalısın." });
 
     const rows = database.prepare(`
-      SELECT completed, first_try, attempts, updated_at
+      SELECT clip_id, group_index, completed, first_try, attempts, updated_at
       FROM user_progress
       WHERE user_id = ?
       ORDER BY updated_at ASC
@@ -715,24 +918,36 @@ async function api(req, res, url) {
     const daySet = new Set(
       rows
         .filter((r) => r.completed)
-        .map((r) => r.updated_at.slice(0, 10))
+        .map((r) => applicationDate(new Date(r.updated_at)))
     );
     const today    = new Date();
     let checkDate  = new Date(today);
-    while (daySet.has(checkDate.toISOString().slice(0, 10))) {
+    while (daySet.has(applicationDate(checkDate))) {
       currentStreak++;
       checkDate.setDate(checkDate.getDate() - 1);
     }
 
     // Basit puan: tamamlanan her group 10 puan, ilk denemede 5 bonus
     const totalPoints = totalCompleted * 10 + firstTryCount * 5;
+    const lastProgress = [...rows].reverse().find((row) => row.completed) || null;
+    const lastClip = lastProgress
+      ? catalog().find((clip) => clip.id === lastProgress.clip_id)
+      : null;
 
     return send(res, 200, {
       totalCompleted,
       accuracy,
       totalMinutes,
       currentStreak,
-      totalPoints
+      totalPoints,
+      lastProgress: lastProgress
+        ? {
+            clipId: lastProgress.clip_id,
+            clipTitle: lastClip?.title || lastProgress.clip_id,
+            groupIndex: lastProgress.group_index,
+            updatedAt: lastProgress.updated_at
+          }
+        : null
     });
   }
 
@@ -740,6 +955,9 @@ async function api(req, res, url) {
   if (req.method === "POST" && url.pathname === "/api/profile/level") {
     const user = currentUser(req);
     if (!user) return send(res, 401, { error: "Giriş yapmalısın." });
+    if (!checkRateLimit(`profile-level:${user.id}:${ip}`, 20, 60_000)) {
+      return send(res, 429, { error: "Çok fazla profil isteği. Lütfen biraz bekleyiniz." });
+    }
     const level = String((await readBody(req)).level || "").toUpperCase();
     if (!["A1", "A2", "B1", "B2", "C1"].includes(level)) {
       return send(res, 400, { error: "Geçersiz seviye." });
@@ -753,9 +971,15 @@ async function api(req, res, url) {
 
   // ── POST /api/profile/favorite-media ───────────────────────────────────────
   if (req.method === "POST" && url.pathname === "/api/profile/favorite-media") {
+    if (!checkRateLimit(`favorite-media:${ip}`, 10, 60_000)) {
+      return send(res, 429, { error: "Çok fazla istek. Lütfen biraz bekleyiniz." });
+    }
     const body = await readBody(req);
     const media = String(body.media || "").trim();
     const user = currentUser(req);
+    if (media.length > 200) {
+      return send(res, 400, { error: "Medya adı 200 karakterden kısa olmalı." });
+    }
     if (media) {
       const requestsFile = join(dataDir, "media_requests.json");
       let requests = [];
@@ -768,7 +992,7 @@ async function api(req, res, url) {
         userEmail: user?.email || null,
         date: new Date().toISOString()
       });
-      writeFileSync(requestsFile, JSON.stringify(requests, null, 2), "utf8");
+      writeAtomic(requestsFile, JSON.stringify(requests, null, 2));
     }
     return send(res, 200, { ok: true, saved: media });
   }
@@ -780,22 +1004,20 @@ async function api(req, res, url) {
       return send(res, 403, { error: "Bu işlem yalnızca admin içindir." });
     }
     const body     = await readBody(req);
-    const required = ["id", "title", "level", "youtubeId", "dataFile"];
-    if (required.some((key) => !body[key])) {
-      return send(res, 400, { error: "id, title, level, youtubeId ve dataFile gerekli." });
-    }
+    const metadataError = validateClipMetadata(body);
+    if (metadataError) return send(res, 400, { error: metadataError });
     const clips = catalog();
     if (clips.some((clip) => clip.id === body.id)) {
       return send(res, 409, { error: "Bu klip id'si zaten kullanılıyor." });
     }
     const item = {
-      id:        String(body.id),
-      title:     String(body.title),
+      id:        String(body.id).trim(),
+      title:     String(body.title).trim(),
       level:     String(body.level).toUpperCase(),
-      youtubeId: String(body.youtubeId),
-      dataFile:  String(body.dataFile)
+      youtubeId: String(body.youtubeId).trim(),
+      dataFile:  String(body.dataFile).trim()
     };
-    writeFileSync(join(root, "clips.json"), JSON.stringify([...clips, item], null, 2) + "\n");
+    writeAtomic(join(root, "clips.json"), JSON.stringify([...clips, item], null, 2) + "\n");
     return send(res, 201, { clip: item });
   }
 
@@ -811,7 +1033,7 @@ async function api(req, res, url) {
     if (clips.length === filtered.length) {
       return send(res, 404, { error: "Klip bulunamadı." });
     }
-    writeFileSync(join(root, "clips.json"), JSON.stringify(filtered, null, 2) + "\n");
+    writeAtomic(join(root, "clips.json"), JSON.stringify(filtered, null, 2) + "\n");
     return send(res, 200, { success: true, remaining: filtered.length });
   }
 
@@ -832,6 +1054,16 @@ async function api(req, res, url) {
 
     const body = await readBody(req);
     const existingData = json(file);
+    if (body.title !== undefined && (!String(body.title).trim() || String(body.title).trim().length > 120)) {
+      return send(res, 400, { error: "Klip başlığı 1-120 karakter arasında olmalı." });
+    }
+    if (body.level !== undefined && !allowedLevels.has(String(body.level).toUpperCase())) {
+      return send(res, 400, { error: "Geçersiz seviye." });
+    }
+    if (body.groups !== undefined) {
+      const groupsError = validateGroups(body.groups);
+      if (groupsError) return send(res, 400, { error: groupsError });
+    }
 
     if (Array.isArray(body.groups)) {
       existingData.groups = body.groups;
@@ -843,7 +1075,7 @@ async function api(req, res, url) {
         clips[catIdx].groupCount = body.groups.length;
         if (body.title) clips[catIdx].title = String(body.title);
         if (body.level) clips[catIdx].level = String(body.level).toUpperCase();
-        writeFileSync(join(root, "clips.json"), JSON.stringify(clips, null, 2) + "\n");
+        writeAtomic(join(root, "clips.json"), JSON.stringify(clips, null, 2) + "\n");
       }
 
       // TXT transkriptini de güncelle
@@ -857,14 +1089,14 @@ async function api(req, res, url) {
             }
           }
         }
-        writeFileSync(txtFile, allSentenceTexts.join("\n"), "utf8");
+        writeAtomic(txtFile, allSentenceTexts.join("\n"));
       } catch {}
     }
 
     if (body.title) existingData.title = String(body.title);
     if (body.level) existingData.level = String(body.level).toUpperCase();
 
-    writeFileSync(file, JSON.stringify(existingData, null, 2) + "\n", "utf8");
+    writeAtomic(file, JSON.stringify(existingData, null, 2) + "\n");
     return send(res, 200, { success: true, message: "Klip başarıyla güncellendi.", clip: existingData });
   }
 
@@ -929,47 +1161,40 @@ async function api(req, res, url) {
     });
   }
 
-  // ── POST /api/subscription/upgrade ────────────────────────────────────────
-  if (req.method === "POST" && url.pathname === "/api/subscription/upgrade") {
-    const user = currentUser(req);
-    if (!user) return send(res, 401, { error: "Giriş yapmalısın." });
-    const body = await readBody(req);
-    const plan = body.plan || "pro";
-
-    database.prepare("UPDATE users SET plan = ? WHERE id = ?").run(plan, user.id);
-    return send(res, 200, {
-      success: true,
-      message: "Tebrikler! Pro plana başarıyla geçiş yaptınız.",
-      plan
-    });
-  }
-
   // ── POST /api/subscription/create-checkout-session ────────────────────────
   if (req.method === "POST" && url.pathname === "/api/subscription/create-checkout-session") {
     const user = currentUser(req);
     if (!user) return send(res, 401, { error: "Giriş yapmalısın." });
+    if (!checkRateLimit(`checkout:${user.id}:${ip}`, 10, 60_000)) {
+      return send(res, 429, { error: "Çok fazla ödeme isteği. Lütfen biraz bekleyiniz." });
+    }
     const body = await readBody(req);
-    const plan = body.plan || "pro_monthly";
+    const plan = String(body.plan || "");
+    if (!allowedCheckoutPlans.has(plan)) {
+      return send(res, 400, { error: "Geçersiz ödeme planı." });
+    }
     const stripeKey = process.env.STRIPE_SECRET_KEY;
+    const priceId = plan === "pro_yearly"
+      ? process.env.STRIPE_PRICE_PRO_YEARLY
+      : process.env.STRIPE_PRICE_PRO_MONTHLY;
 
-    if (!stripeKey) {
-      return send(res, 200, {
-        simulated: true,
-        message: "Stripe API anahtarı (.env STRIPE_SECRET_KEY) tanımlı değil."
+    if (!stripeKey || !priceId) {
+      return send(res, 503, {
+        error: "Ödeme sistemi henüz yapılandırılmamış. Lütfen daha sonra tekrar deneyin."
       });
     }
 
     try {
-      const priceAmount = plan === "pro_yearly" ? 79900 : 9900;
       const params = new URLSearchParams({
         "success_url": `${appUrl}/profil?payment=success`,
         "cancel_url": `${appUrl}/profil?payment=cancelled`,
         "payment_method_types[0]": "card",
-        "mode": "payment",
+        "mode": "subscription",
         "customer_email": user.email,
-        "line_items[0][price_data][currency]": "try",
-        "line_items[0][price_data][unit_amount]": String(priceAmount),
-        "line_items[0][price_data][product_data][name]": `subscript. ${plan === "pro_yearly" ? "Pro Yıllık" : "Pro Aylık"}`,
+        "client_reference_id": user.id,
+        "metadata[user_id]": user.id,
+        "metadata[plan]": plan,
+        "line_items[0][price]": priceId,
         "line_items[0][quantity]": "1"
       });
 
@@ -992,20 +1217,75 @@ async function api(req, res, url) {
     }
   }
 
+  // ── POST /api/subscription/webhook ────────────────────────────────────────
+  if (req.method === "POST" && url.pathname === "/api/subscription/webhook") {
+    const rawBody = await readRawBody(req);
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "";
+    if (!validStripeSignature(rawBody, req.headers["stripe-signature"], webhookSecret)) {
+      return send(res, 400, { error: "Geçersiz Stripe webhook imzası." });
+    }
+
+    let event;
+    try {
+      event = JSON.parse(rawBody.toString("utf8"));
+    } catch {
+      return send(res, 400, { error: "Geçersiz Stripe webhook gövdesi." });
+    }
+    if (event.type === "checkout.session.completed" && event.data?.object?.payment_status === "paid") {
+      const session = event.data.object;
+      const userId = String(session.metadata?.user_id || session.client_reference_id || "");
+      const plan = String(session.metadata?.plan || "");
+      if (userId && allowedCheckoutPlans.has(plan)) {
+        database.prepare("UPDATE users SET plan = ? WHERE id = ?").run("pro", userId);
+      }
+    }
+    return send(res, 200, { received: true });
+  }
+
   // ── POST /api/profile/update ──────────────────────────────────────────────
   if (req.method === "POST" && url.pathname === "/api/profile/update") {
     const user = currentUser(req);
     if (!user) return send(res, 401, { error: "Giriş yapmalısın." });
+    if (!checkRateLimit(`profile-update:${user.id}:${ip}`, 20, 60_000)) {
+      return send(res, 429, { error: "Çok fazla profil isteği. Lütfen biraz bekleyiniz." });
+    }
     const body = await readBody(req);
     const name = String(body.name || "").trim();
+    const email = String(body.email || user.email).trim().toLowerCase();
     if (!name) return send(res, 400, { error: "İsim boş bırakılamaz." });
+    if (name.length > 80) return send(res, 400, { error: "İsim 80 karakterden uzun olamaz." });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+      return send(res, 400, { error: "Geçerli bir e-posta adresi gerekli." });
+    }
+    const sameEmail = findUserByEmail(email);
+    if (sameEmail && sameEmail.id !== user.id) return send(res, 409, { error: "Bu e-posta zaten kullanılıyor." });
+    const sameName = findUserByName(name);
+    if (sameName && sameName.id !== user.id) {
+      return send(res, 409, { error: "Bu kullanıcı adı zaten kullanılıyor." });
+    }
     const avatarColors = new Set(["violet", "ocean", "sunset", "mint", "rose", "slate"]);
+    const avatarStyles = new Set(["lorelei", "adventurer", "bottts", "fun-emoji", "notionists", "pixel-art"]);
     const avatarColor = String(body.avatarColor || user.avatar_color || "violet");
     if (!avatarColors.has(avatarColor)) {
       return send(res, 400, { error: "Geçersiz avatar rengi." });
     }
+    const avatarStyle = String(body.avatarStyle || user.avatar_style || "lorelei");
+    const avatarSeed = String(body.avatarSeed || user.avatar_seed || name).trim();
+    if (!avatarStyles.has(avatarStyle) || !avatarSeed || avatarSeed.length > 64) {
+      return send(res, 400, { error: "Geçersiz avatar ayarı." });
+    }
 
-    database.prepare("UPDATE users SET name = ?, avatar_color = ? WHERE id = ?").run(name, avatarColor, user.id);
+    const displayName = String(body.displayName || user.display_name || name).trim();
+    if (!displayName || displayName.length > 80) return send(res, 400, { error: "Ad 1-80 karakter arasında olmalı." });
+    const emailChanged = email !== user.email;
+    database.prepare("UPDATE users SET name = ?, email = ?, display_name = ?, avatar_color = ?, avatar_style = ?, avatar_seed = ?, email_verified = ?, verified_at = ? WHERE id = ?")
+      .run(name, email, displayName, avatarColor, avatarStyle, avatarSeed, emailChanged ? 0 : user.email_verified, emailChanged ? null : user.verified_at, user.id);
+    if (emailChanged) {
+      const verifyToken = makeToken();
+      database.prepare("INSERT INTO email_verifications (token, user_id, expires_at, created_at) VALUES (?, ?, ?, ?)")
+        .run(tokenHash(verifyToken), user.id, hourExpiry(), now());
+      await sendEmail({ to: email, subject: "subscript. — E-posta adresini doğrula", html: `<p>Merhaba ${escapeHtml(displayName)},</p><p>Yeni e-posta adresini doğrula: <a href="${appUrl}/api/auth/verify-email?token=${verifyToken}">Doğrula</a></p>` });
+    }
     const updated = database.prepare("SELECT * FROM users WHERE id = ?").get(user.id);
     return send(res, 200, { success: true, user: publicUser(updated) });
   }
@@ -1014,12 +1294,15 @@ async function api(req, res, url) {
   if (req.method === "POST" && url.pathname === "/api/profile/password") {
     const user = currentUser(req);
     if (!user) return send(res, 401, { error: "Giriş yapmalısın." });
+    if (!checkRateLimit(`profile-password:${user.id}:${ip}`, 5, 60_000)) {
+      return send(res, 429, { error: "Çok fazla şifre değiştirme isteği. Lütfen biraz bekleyiniz." });
+    }
     const body = await readBody(req);
     const currentPass = String(body.currentPassword || "");
     const newPass = String(body.newPassword || "");
 
-    if (newPass.length < 8) {
-      return send(res, 400, { error: "Yeni şifre en az 8 karakter olmalıdır." });
+    if (newPass.length < 8 || newPass.length > 128) {
+      return send(res, 400, { error: "Yeni şifre 8-128 karakter arasında olmalıdır." });
     }
 
     const fullUser = database.prepare("SELECT password_hash FROM users WHERE id = ?").get(user.id);
@@ -1028,7 +1311,14 @@ async function api(req, res, url) {
     }
 
     database.prepare("UPDATE users SET password_hash = ? WHERE id = ?").run(hashPassword(newPass), user.id);
-    return send(res, 200, { success: true, message: "Şifreniz başarıyla güncellendi." });
+    database.prepare("DELETE FROM sessions WHERE user_id = ?").run(user.id);
+    const sessionToken = createSession(user.id);
+    return send(
+      res,
+      200,
+      { success: true, message: "Şifreniz başarıyla güncellendi." },
+      authCookieHeader(sessionToken)
+    );
   }
 
   // ── POST /api/admin/transcribe ────────────────────────────────────────────
@@ -1039,17 +1329,29 @@ async function api(req, res, url) {
         error: `Yalnızca admin (${adminEmail}) yetkisiyle video işlenebilir. Lütfen bu e-posta ile giriş yapınız.`
       });
     }
+    if (!checkRateLimit(`transcribe:${user.id}:${ip}`, 5, 60 * 60_000)) {
+      return send(res, 429, { error: "Saatlik transkripsiyon sınırına ulaştınız." });
+    }
     const body = await readBody(req);
     const urlParam = String(body.url || "").trim();
     const title = String(body.title || "").trim();
     const level = String(body.level || "B1").toUpperCase();
 
-    if (!urlParam.includes("youtube.com") && !urlParam.includes("youtu.be")) {
+    let videoUrl;
+    try {
+      videoUrl = new URL(urlParam);
+    } catch {
+      videoUrl = null;
+    }
+    const validYouTubeHost = videoUrl
+      && (videoUrl.hostname === "youtube.com" || videoUrl.hostname.endsWith(".youtube.com") || videoUrl.hostname === "youtu.be");
+    if (!validYouTubeHost || urlParam.length > 2048) {
       return send(res, 400, { error: "Geçerli bir YouTube video bağlantısı giriniz." });
     }
-    if (!title) {
+    if (!title || title.length > 120) {
       return send(res, 400, { error: "Klip başlığı gereklidir." });
     }
+    if (!allowedLevels.has(level)) return send(res, 400, { error: "Geçersiz seviye." });
 
     const jobId = randomBytes(8).toString("hex");
     const job = { id: jobId, status: "processing", logs: [], title, url: urlParam, level, createdAt: now() };
@@ -1081,7 +1383,7 @@ async function api(req, res, url) {
           const item = clips.find((c) => c.id === slug);
           if (item) {
             item.level = level;
-            writeFileSync(join(root, "clips.json"), JSON.stringify(clips, null, 2) + "\n");
+            writeAtomic(join(root, "clips.json"), JSON.stringify(clips, null, 2) + "\n");
           }
         } catch {}
       } else {
@@ -1114,6 +1416,9 @@ async function api(req, res, url) {
 
   // ── POST /api/auth/google ─────────────────────────────────────────────────
   if (req.method === "POST" && url.pathname === "/api/auth/google") {
+    if (!checkRateLimit(`oauth-google:${ip}`, 10, 60_000)) {
+      return send(res, 429, { error: "Çok fazla OAuth isteği. Lütfen biraz bekleyiniz." });
+    }
     const body = await readBody(req);
     const credential = String(body.credential || "").trim();
 
@@ -1131,29 +1436,19 @@ async function api(req, res, url) {
       });
       if (verifyRes.ok) {
         const payload = await verifyRes.json();
-        email = String(payload.email || "").toLowerCase().trim();
-        name = String(payload.name || payload.given_name || name).trim();
+        const configuredAudience = process.env.GOOGLE_CLIENT_ID || "";
+        const validIssuer = ["accounts.google.com", "https://accounts.google.com"].includes(payload.iss);
+        if (configuredAudience && payload.aud === configuredAudience && payload.email_verified === "true" && validIssuer) {
+          email = String(payload.email || "").toLowerCase().trim();
+          name = String(payload.name || payload.given_name || name).trim();
+        }
       }
     } catch (e) {
       console.warn("[google-auth] tokeninfo sorgu hatası:", e.message);
     }
 
-    // 2. Fallback: JWT payload decode
     if (!email) {
-      try {
-        const parts = credential.split(".");
-        if (parts.length === 3) {
-          const decoded = JSON.parse(Buffer.from(parts[1], "base64").toString("utf8"));
-          if (decoded.email) {
-            email = String(decoded.email).toLowerCase().trim();
-            name = String(decoded.name || name).trim();
-          }
-        }
-      } catch {}
-    }
-
-    if (!email) {
-      return send(res, 400, { error: "Google hesabından geçerli e-posta alınamadı." });
+      return send(res, 401, { error: "Google kimliği doğrulanamadı." });
     }
 
     let user = findUserByEmail(email);
@@ -1168,29 +1463,7 @@ async function api(req, res, url) {
     }
 
     const sessionToken = createSession(user.id);
-    return send(res, 200, { token: sessionToken, user: publicUser(user) }, authCookieHeader(sessionToken));
-  }
-
-  // ── POST /api/auth/oauth ──────────────────────────────────────────────────
-  if (req.method === "POST" && url.pathname === "/api/auth/oauth") {
-    const body = await readBody(req);
-    const provider = String(body.provider || "google").toLowerCase();
-    const email = String(body.email || `user_${randomBytes(4).toString("hex")}@${provider}.local`).toLowerCase();
-    const name = String(body.name || `${provider.toUpperCase()} Kullanıcısı`).trim();
-
-    let user = findUserByEmail(email);
-    if (!user) {
-      const id = randomBytes(12).toString("hex");
-      const dummyPass = randomBytes(16).toString("hex");
-      database.prepare(`
-        INSERT INTO users (id, name, email, password_hash, level, email_verified, verified_at, created_at)
-        VALUES (?, ?, ?, ?, ?, 1, ?, ?)
-      `).run(id, name, email, hashPassword(dummyPass), null, now(), now());
-      user = database.prepare("SELECT * FROM users WHERE id = ?").get(id);
-    }
-
-    const sessionToken = createSession(user.id);
-    return send(res, 200, { token: sessionToken, user: publicUser(user) }, authCookieHeader(sessionToken));
+    return send(res, 200, { user: publicUser(user) }, authCookieHeader(sessionToken));
   }
 
   return send(res, 404, { error: "API endpoint bulunamadı." });
@@ -1253,6 +1526,11 @@ function staticFile(req, res, url) {
       res.writeHead(302, { Location: "/ogren" });
       return res.end();
     }
+    if (pathname === "/admin.html") {
+      const adminFile = resolve(root, "./admin.html");
+      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+      return res.end(readFileSync(adminFile));
+    }
   }
 
   // Oturum açmış ve yetkili kullanıcılar için ana uygulama arayüzü sunulur
@@ -1264,11 +1542,31 @@ function staticFile(req, res, url) {
 // ─── HTTP Sunucusu ────────────────────────────────────────────────────────────
 createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+  const requestId = randomBytes(8).toString("hex");
+  res.setHeader("X-Request-Id", requestId);
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+  if (process.env.NODE_ENV === "production") {
+    res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  }
   try {
+    if (req.method === "GET" && url.pathname === "/healthz") {
+      database.prepare("SELECT 1").get();
+      return send(res, 200, { status: "ok" });
+    }
     if (url.pathname.startsWith("/api/")) await api(req, res, url);
     else staticFile(req, res, url);
   } catch (error) {
-    console.error(error);
+    console.error(`[${requestId}] ${req.method} ${url.pathname}`, error);
+    if (error instanceof InvalidJsonError) {
+      return send(res, 400, { error: "Geçersiz JSON gövdesi." });
+    }
+    if (error instanceof RequestTooLargeError) {
+      return send(res, 413, { error: "İstek gövdesi çok büyük." });
+    }
     send(res, 500, { error: "Sunucu hatası." });
   }
 }).listen(port, () => console.log(`subscript API: http://localhost:${port}`));

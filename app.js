@@ -25,6 +25,8 @@ async function fetchMeaning(rawWord) {
 // ─── State ────────────────────────────────────────────────────────────────────
 let groups = [];
 let current = 0;       // mevcut grup indexi
+let completedGroups = new Set();
+let furthestGroup = 0;
 let hintStage = 0;     // 0: yok, 1: anlam gösterildi, 2: ilk harf, 3: kelime tamamlandı
 let speed = 1;
 let player = null;
@@ -40,6 +42,12 @@ let currentClipDocTitle = "subscript. — İngilizce Dinleme Pratiği";
 
 // ─── DOM helpers ──────────────────────────────────────────────────────────────
 const $ = (id) => document.getElementById(id);
+const escapeHtml = (value) => String(value ?? "")
+  .replace(/&/g, "&amp;")
+  .replace(/</g, "&lt;")
+  .replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;")
+  .replace(/'/g, "&#039;");
 const normalize = (v) =>
   String(v || "")
     .toLowerCase()
@@ -77,7 +85,7 @@ function buildWordTilesMarkup(cleanWord, groupIndex, wordIndex) {
         data-group="${groupIndex}"
         data-word="${wordIndex}"
         data-char-index="${charIndex}"
-        data-expected="${ch.toLowerCase()}"
+        data-expected="${escapeHtml(ch.toLowerCase())}"
         autocomplete="off"
         autocorrect="off"
         spellcheck="false"
@@ -85,7 +93,7 @@ function buildWordTilesMarkup(cleanWord, groupIndex, wordIndex) {
     )
     .join("");
 
-  return `<span class="word-tiles-group" data-word="${cleanWord}" data-group="${groupIndex}" data-word-idx="${wordIndex}">
+  return `<span class="word-tiles-group" data-word="${escapeHtml(cleanWord)}" data-group="${groupIndex}" data-word-idx="${wordIndex}">
     <span class="hint-meaning-bubble" id="bubble_${groupIndex}_${wordIndex}" style="display:none;"></span>
     ${tilesHtml}
   </span>`;
@@ -101,10 +109,10 @@ function buildSentenceMarkup(sentence, groupIndex) {
       if (blanks.has(wordIdx) && cleanWord.length > 0) {
         // Noktalama işareti varsa kelimenin ardına ekle
         const trailingPunct = word.slice(cleanWord.length);
-        return buildWordTilesMarkup(cleanWord, groupIndex, wordIdx) + 
-               (trailingPunct ? `<span class="word-static">${trailingPunct}</span>` : "");
+        return buildWordTilesMarkup(cleanWord, groupIndex, wordIdx) +
+               (trailingPunct ? `<span class="word-static">${escapeHtml(trailingPunct)}</span>` : "");
       }
-      return `<span class="word-static">${word}</span>`;
+      return `<span class="word-static">${escapeHtml(word)}</span>`;
     })
     .join(" ");
 }
@@ -121,15 +129,19 @@ function buildGroupMarkup(group) {
 // ─── Render ───────────────────────────────────────────────────────────────────
 function render() {
   const group = groups[current];
-  isCurrentPartFirstTry = true;
-  hintStage = 0;
+  if (currentDataFile) {
+    localStorage.setItem(`subscript_last_group_${currentDataFile}`, String(current));
+  }
+  const isCompleted = completedGroups.has(current);
+  isCurrentPartFirstTry = !isCompleted;
+  hintStage = isCompleted ? 3 : 0;
 
   // Header / Progress
   $("stepCount").textContent = `${current + 1} / ${groups.length}`;
   if ($("progressPercent")) {
-    $("progressPercent").textContent = `%${Math.round(((current + 1) / groups.length) * 100)} TAMAMLANDI`;
+    $("progressPercent").textContent = `%${Math.round((completedGroups.size / groups.length) * 100)} TAMAMLANDI`;
   }
-  $("progressFill").style.width = `${((current + 1) / groups.length) * 100}%`;
+  $("progressFill").style.width = `${(completedGroups.size / groups.length) * 100}%`;
 
   // Segment meta
   $("segmentNumber").textContent = `PARÇA ${String(current + 1).padStart(2, "0")}`;
@@ -139,11 +151,24 @@ function render() {
   if ($("prevPartButton")) {
     $("prevPartButton").disabled = current === 0;
   }
+  if ($("nextPartButton")) {
+    $("nextPartButton").disabled = current >= furthestGroup || current >= groups.length - 1;
+  }
+  $("checkButton").disabled = isCompleted;
+  $("hintButton").disabled = isCompleted;
 
   // Boşlukları render et
   $("fillSentence").innerHTML = buildGroupMarkup(group);
+  if (isCompleted) {
+    document.querySelectorAll(".tile-char-input").forEach((input) => {
+      input.value = input.dataset.expected;
+      input.disabled = true;
+    });
+  }
   $("feedback").className = "feedback";
-  $("feedback").innerHTML = "";
+  $("feedback").innerHTML = isCompleted
+    ? `<span class="correct">Bu parça tamamlandı.</span> İstersen tekrar dinleyebilirsin.`
+    : "";
 
   setupTileEvents();
 
@@ -162,14 +187,19 @@ function renderSidebar() {
       let text = "Kilitli";
       let statusClass = "";
 
-      if (i < current) {
+      if (completedGroups.has(i)) {
         icon = ICONS.done;
         text = g.sentences.map((s) => s.text).join(" ");
         statusClass = " done";
+        if (i === current) statusClass += " active";
       } else if (i === current) {
         icon = ICONS.active;
         text = "Şimdi çalışıyor";
         statusClass = " active";
+      } else if (i <= furthestGroup) {
+        icon = ICONS.active;
+        text = "Devam et";
+        statusClass = " unlocked";
       }
 
       return `<button class="segment-item${statusClass}" data-index="${i}">
@@ -185,7 +215,7 @@ function renderSidebar() {
   document.querySelectorAll(".segment-item").forEach((btn) => {
     btn.addEventListener("click", () => {
       const i = Number(btn.dataset.index);
-      if (i <= current) {
+      if (i <= furthestGroup) {
         current = i;
         render();
         play(true);
@@ -202,6 +232,7 @@ function setupTileEvents() {
     // Harf yazıldığında otomatik sonrakine geç
     tile.addEventListener("input", (e) => {
       const val = tile.value.trim();
+      tile.classList.remove("is-correct", "is-wrong");
       if (val.length > 0) {
         tile.value = val[val.length - 1].toLowerCase();
         // Bir sonraki kutuya geç
@@ -406,6 +437,12 @@ function checkAnswer() {
 
     const isMatch = userWord === targetWord;
     groupEl.classList.remove("is-correct", "is-wrong");
+    tiles.forEach((tile) => {
+      tile.classList.remove("is-correct", "is-wrong");
+      const actual = normalize(tile.value);
+      const expected = normalize(tile.dataset.expected);
+      tile.classList.add(actual && actual === expected ? "is-correct" : "is-wrong");
+    });
     void groupEl.offsetWidth; // Reflow tetikle
 
     if (isMatch) {
@@ -419,11 +456,14 @@ function checkAnswer() {
 
   if (!allFilled) {
     feedback.className = "feedback partial";
-    feedback.textContent = `Eksik kelime${incompleteWords.length > 1 ? "ler" : ""}: ${incompleteWords.join(", ")}.`;
+    feedback.textContent = `Eksik kelime${incompleteWords.length > 1 ? "ler" : ""}: ${incompleteWords.join(", ")}. Yeşil harfler doğru.`;
     return;
   }
 
   if (allCorrect) {
+    completedGroups.add(current);
+    furthestGroup = Math.min(groups.length - 1, Math.max(furthestGroup, current + 1));
+
     // Streak (Seri) Güncelleme
     currentStreak++;
     if (currentStreak > maxStreak) maxStreak = currentStreak;
@@ -434,6 +474,7 @@ function checkAnswer() {
     feedback.className = "feedback success";
     feedback.innerHTML = `<span class="correct">Eksiksiz ve doğru!</span> Harika dinleme.`;
 
+    const completedIndex = current;
     // İlerlemeyi sunucuya kaydet
     if (authToken) {
       apiRequest('/api/progress', {
@@ -445,10 +486,13 @@ function checkAnswer() {
           firstTry: isCurrentPartFirstTry,
           attempts: hintStage > 0 ? hintStage + 1 : 1
         })
-      }).catch(() => {});
+      }).catch(() => {
+        showAppNotice("İlerlemen kaydedilemedi. Bağlantı sağlandığında tekrar dene.");
+      });
     }
 
     setTimeout(() => {
+      if (current !== completedIndex) return;
       if (current < groups.length - 1) {
         current++;
         render();
@@ -464,7 +508,7 @@ function checkAnswer() {
     isCurrentPartFirstTry = false;
     updateStreakUI();
     feedback.className = "feedback partial";
-    feedback.textContent = `Kontrol edilemeyen kelime${wrongWords.length > 1 ? "ler" : ""}: ${wrongWords.join(", ")}.`;
+    feedback.textContent = `Kontrol edilemeyen kelime${wrongWords.length > 1 ? "ler" : ""}: ${wrongWords.join(", ")}. Yeşil harfler doğru, kırmızıları tekrar dene.`;
   }
 }
 
@@ -592,6 +636,14 @@ $("prevPartButton").addEventListener("click", () => {
   }
 });
 
+$("nextPartButton").addEventListener("click", () => {
+  if (current < furthestGroup && current < groups.length - 1) {
+    current++;
+    render();
+    play(true);
+  }
+});
+
 $("backButton").addEventListener("click", () => {
   if (playerReady) play(true);
 });
@@ -616,8 +668,10 @@ if ($("restartModalBtn")) {
 // ─── Klip Kütüphanesi (Library Modal) ─────────────────────────────────────────
 let globalCatalog = [];
 let currentDataFile = "";
+let libraryQuery = "";
+let libraryLevel = "all";
 
-let authToken = localStorage.getItem("subscript_token") || sessionStorage.getItem("subscript_token") || "";
+let authToken = "";
 let authUser = null;
 let loginMode = "login";
 const authBackdrop = $("authBackdrop");
@@ -629,15 +683,34 @@ function applyTheme(theme) {
   $(`theme-${isDark ? "dark" : "light"}`).checked = true;
 }
 
-function authHeaders() {
-  return authToken ? { Authorization: `Bearer ${authToken}` } : {};
+let noticeTimer = null;
+function showAppNotice(message) {
+  const notice = $("appNotice");
+  if (!notice) return;
+  notice.textContent = message;
+  notice.hidden = false;
+  notice.classList.remove("is-visible");
+  void notice.offsetWidth;
+  notice.classList.add("is-visible");
+  clearTimeout(noticeTimer);
+  noticeTimer = setTimeout(() => {
+    notice.classList.remove("is-visible");
+    notice.hidden = true;
+  }, 5000);
 }
 
 async function apiRequest(path, options = {}) {
-  const res = await fetch(path, {
-    ...options,
-    headers: { "Content-Type": "application/json", ...authHeaders(), ...(options.headers || {}) }
-  });
+  let res;
+  try {
+    res = await fetch(path, {
+      ...options,
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json", ...(options.headers || {}) }
+    });
+  } catch (error) {
+    showAppNotice("Sunucuya bağlanılamadı. İnternet bağlantını kontrol edip tekrar dene.");
+    throw error;
+  }
   const body = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(body.error || "İstek başarısız.");
   return body;
@@ -672,18 +745,12 @@ async function loadCatalog() {
 }
 
 async function ensureAuthenticated() {
-  if (!authToken) {
-    window.location.replace("/");
-    return false;
-  }
   try {
     authUser = (await apiRequest("/api/me")).user;
+    authToken = "cookie";
     return true;
   } catch {
-    localStorage.removeItem("subscript_token");
-    sessionStorage.removeItem("subscript_token");
     authToken = "";
-    document.cookie = "subscript_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0";
     window.location.replace("/");
     return false;
   }
@@ -793,13 +860,16 @@ function openLoginModal() {
   $("toggleLoginPassword").textContent = "Göster";
   loginBackdrop.classList.add("open");
   loginBackdrop.setAttribute("aria-hidden", "false");
-  window.setTimeout(() => $("loginEmail").focus(), 100);
+  window.setTimeout(() => $("loginName").focus(), 100);
 }
 
 function setLoginMode(mode) {
   loginMode = mode;
   const isRegister = mode === "register";
   document.querySelectorAll(".login-name-field").forEach((element) => {
+    element.hidden = false;
+  });
+  document.querySelectorAll(".login-email-field").forEach((element) => {
     element.hidden = !isRegister;
   });
   $("loginTitle").textContent = isRegister ? "Kendi hesabını oluştur." : "Kaldığın yerden devam et.";
@@ -823,32 +893,26 @@ async function submitLogin(event) {
     return;
   }
 
+  const username = $("loginName").value.trim();
   const email = $("loginEmail").value.trim();
   const password = $("loginPassword").value;
-  const name = $("loginName").value.trim();
-  setLoginError("loginNameError", loginMode === "register" && !name ? "Adını yaz." : "");
-  setLoginError("loginEmailError", !email ? "E-posta adresini yaz." : !email.includes("@") ? "Geçerli bir e-posta adresi yaz." : "");
+  const name = username;
+  setLoginError("loginNameError", !username ? "Kullanıcı adını yaz." : "");
+  setLoginError("loginEmailError", loginMode === "register" && (!email ? "E-posta adresini yaz." : !email.includes("@") ? "Geçerli bir e-posta adresi yaz." : ""));
   setLoginError("loginPasswordError", !password ? "Şifreni yaz." : password.length < 8 ? "Şifren en az 8 karakter olmalı." : "");
   setLoginError("loginSubmitError", "");
-  if (!email || !email.includes("@") || !password || password.length < 8 || (loginMode === "register" && !name)) return;
+  if (!username || !password || password.length < 8 || (loginMode === "register" && (!name || !email || !email.includes("@")))) return;
 
   setLoginBusy(true);
   try {
     const result = await apiRequest(loginMode === "register" ? "/api/auth/register" : "/api/auth/login", {
       method: "POST",
-      body: JSON.stringify({ name, email, password, remember: $("loginRemember").checked })
+      body: JSON.stringify(loginMode === "register"
+        ? { name, email, password, remember: $("loginRemember").checked }
+        : { name, password, remember: $("loginRemember").checked })
     });
-    authToken = result.token;
+    authToken = "cookie";
     authUser = result.user;
-    if ($("loginRemember").checked) {
-      localStorage.setItem("subscript_token", authToken);
-      sessionStorage.removeItem("subscript_token");
-      document.cookie = `subscript_token=${authToken}; Path=/; Max-Age=2592000; SameSite=Lax`;
-    } else {
-      sessionStorage.setItem("subscript_token", authToken);
-      localStorage.removeItem("subscript_token");
-      document.cookie = `subscript_token=${authToken}; Path=/; SameSite=Lax`;
-    }
     if (authUser.name) localStorage.setItem("subscript_name", authUser.name);
     closeLoginModal();
     updateProfileUI();
@@ -869,7 +933,17 @@ async function loadUserStats() {
     if ($('profileStreak')) $('profileStreak').textContent = stats.currentStreak || 0;
     if ($('profilePoints')) $('profilePoints').textContent = stats.totalPoints || 0;
     if ($('profileCompletedCount')) $('profileCompletedCount').textContent = stats.totalCompleted || 0;
-  } catch {}
+    if ($("profileResumeTitle") && stats.lastProgress) {
+      $("profileResumeTitle").textContent = stats.lastProgress.clipTitle;
+      $("profileResumeMeta").textContent =
+        `Parça ${Number(stats.lastProgress.groupIndex) + 1} tamamlandı. Devam etmek için klibe dön.`;
+      if (!localStorage.getItem("subscript_last_clip")) {
+        localStorage.setItem("subscript_last_clip", stats.lastProgress.clipId);
+      }
+    }
+  } catch {
+    showAppNotice("İstatistikler yüklenemedi. Lütfen tekrar dene.");
+  }
 }
 
 function updateProfileUI() {
@@ -931,7 +1005,7 @@ function applyAvatarStyle(initials) {
 }
 
 function buildDicebearUrl(style, seed) {
-  return `https://api.dicebear.com/10.x/${encodeURIComponent(style)}/svg?seed=${encodeURIComponent(seed)}&radius=50&backgroundType=gradientLinear`;
+  return `https://api.dicebear.com/10.x/${encodeURIComponent(style)}/svg?seed=${encodeURIComponent(seed)}&radius=50`;
 }
 
 function routeForSection(section) {
@@ -955,6 +1029,11 @@ function settingsPageForPath(pathname) {
 
 function showSettingsPage(page = settingsPageForPath(window.location.pathname)) {
   const normalizedPage = ["account", "profile", "courses"].includes(page) ? page : "account";
+  if (authUser) {
+    if ($("settingsNameInput")) $("settingsNameInput").value = authUser.name || "";
+    if ($("settingsDisplayNameInput")) $("settingsDisplayNameInput").value = authUser.displayName || authUser.name || "";
+    if ($("settingsEmailInput")) $("settingsEmailInput").value = authUser.email || "";
+  }
   document.querySelectorAll("[data-settings-page]").forEach((view) => {
     view.hidden = view.dataset.settingsPage !== normalizedPage;
   });
@@ -1052,9 +1131,12 @@ async function loadAdminView() {
   adminViewLoading = fetch("/admin.html")
     .then((response) => {
       if (!response.ok) throw new Error("Admin paneli yüklenemedi.");
-      return response.text();
+      return response.text().then((html) => ({ html, finalUrl: response.url }));
     })
-    .then(async (html) => {
+    .then(async ({ html, finalUrl }) => {
+      if (new URL(finalUrl).pathname !== "/admin.html") {
+        throw new Error("Admin oturumun geçersiz veya yetkin yok. Lütfen yeniden giriş yap.");
+      }
       const documentFragment = new DOMParser().parseFromString(html, "text/html");
       const content = documentFragment.querySelector(".admin-content");
       const script = Array.from(documentFragment.querySelectorAll("script"))
@@ -1191,10 +1273,8 @@ function setupNavigation() {
                 method: "POST",
                 body: JSON.stringify({ credential: response.credential })
               });
-              authToken = result.token;
+              authToken = "cookie";
               authUser = result.user;
-              localStorage.setItem("subscript_token", authToken);
-              document.cookie = `subscript_token=${authToken}; Path=/; Max-Age=2592000; SameSite=Lax`;
               if (authUser.name) localStorage.setItem("subscript_name", authUser.name);
               closeLoginModal();
               updateProfileUI();
@@ -1211,27 +1291,7 @@ function setupNavigation() {
         return;
       }
 
-      // 3. Client ID henüz girilmemişse kullanıcıyı şeffaf bilgilendir
-      const userChoice = confirm(
-        "Google Giriş Entegrasyonu:\n\n" +
-        "Gerçek Google hesap seçme ekranı (accounts.google.com) için .env dosyasında GOOGLE_CLIENT_ID tanımlanmalıdır.\n\n" +
-        "Şimdi test hesabıyla giriş yapmak ister misiniz?"
-      );
-
-      if (userChoice) {
-        const result = await apiRequest("/api/auth/oauth", {
-          method: "POST",
-          body: JSON.stringify({ provider: "google", name: "Google Kullanıcısı" })
-        });
-        authToken = result.token;
-        authUser = result.user;
-        localStorage.setItem("subscript_token", authToken);
-        document.cookie = `subscript_token=${authToken}; Path=/; Max-Age=2592000; SameSite=Lax`;
-        if (authUser.name) localStorage.setItem("subscript_name", authUser.name);
-        closeLoginModal();
-        updateProfileUI();
-        await loadCatalog();
-      }
+      throw new Error("Google ile giriş yapılandırılmamış. Lütfen e-posta ile giriş yapın.");
     } catch (err) {
       setLoginError("loginSubmitError", err.message || "Giriş işlemi tamamlanamadı.");
     } finally {
@@ -1242,24 +1302,7 @@ function setupNavigation() {
   const handleAppleLogin = async () => {
     try {
       setLoginBusy(true);
-      const userChoice = confirm(
-        "Apple ile Giriş Entegrasyonu:\n\n" +
-        "Gerçek Apple ID ile oturum açmak için Apple Developer Program hesabı ve Service ID gereklidir.\n\n" +
-        "Şimdi Apple test hesabıyla giriş yapmak ister misiniz?"
-      );
-      if (userChoice) {
-        const result = await apiRequest("/api/auth/oauth", {
-          method: "POST",
-          body: JSON.stringify({ provider: "apple", name: "Apple Kullanıcısı" })
-        });
-        authToken = result.token;
-        authUser = result.user;
-        localStorage.setItem("subscript_token", authToken);
-        if (authUser.name) localStorage.setItem("subscript_name", authUser.name);
-        closeLoginModal();
-        updateProfileUI();
-        await loadCatalog();
-      }
+      throw new Error("Apple ile giriş henüz desteklenmiyor. Lütfen e-posta ile giriş yapın.");
     } catch (err) {
       setLoginError("loginSubmitError", err.message || "Apple girişi başarısız.");
     } finally {
@@ -1295,6 +1338,8 @@ function setupNavigation() {
     }
     $("profileMenu").hidden = true;
     $("settingsNameInput").value = authUser?.name || localStorage.getItem("subscript_name") || "";
+    if ($("settingsDisplayNameInput")) $("settingsDisplayNameInput").value = authUser?.displayName || authUser?.name || "";
+    if ($("settingsEmailInput")) $("settingsEmailInput").value = authUser?.email || "";
     document.querySelectorAll("[data-avatar-color]").forEach((button) => {
       button.classList.toggle("selected", button.dataset.avatarColor === (authUser?.avatarColor || "violet"));
     });
@@ -1331,12 +1376,16 @@ function setupNavigation() {
     $("updateNameForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const newName = $("settingsNameInput").value.trim();
+      const displayName = $("settingsDisplayNameInput")?.value.trim() || newName;
+      const email = $("settingsEmailInput")?.value.trim();
       if (!newName) return;
       try {
         const res = await apiRequest("/api/profile/update", {
           method: "POST",
           body: JSON.stringify({
             name: newName,
+            displayName,
+            email,
             avatarColor: authUser?.avatarColor || localStorage.getItem("subscript_avatar_color") || "violet"
           })
         });
@@ -1481,23 +1530,6 @@ function setupNavigation() {
 
         if (res.url) {
           window.location.href = res.url;
-        } else {
-          // Stripe anahtarı henüz .env'de yoksa geliştirici modu
-          const choice = confirm(
-            "Stripe Ödeme Entegrasyonu:\n\n" +
-            "Gerçek kredi kartı tahsilatı için .env dosyasında STRIPE_SECRET_KEY tanımlanmalıdır.\n\n" +
-            "Şimdi hesabınızı doğrudan PRO plana yükseltmek istiyor musunuz?"
-          );
-          if (choice) {
-            const upRes = await apiRequest("/api/subscription/upgrade", {
-              method: "POST",
-              body: JSON.stringify({ plan: "pro" })
-            });
-            authUser.plan = "pro";
-            openSettingsModal("account");
-            updateProfileUI();
-            alert("Tebrikler! Hesabınız Pro seviyesine yükseltildi.");
-          }
         }
       } catch (err) {
         alert("Abonelik hatası: " + err.message);
@@ -1520,12 +1552,9 @@ function setupNavigation() {
     } finally {
       authToken = "";
       authUser = null;
-      localStorage.removeItem("subscript_token");
-      sessionStorage.removeItem("subscript_token");
       localStorage.removeItem("subscript_name");
       localStorage.removeItem("subscript_level");
       localStorage.removeItem("subscript_avatar_color");
-      document.cookie = "subscript_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0";
       $("profileMenu").hidden = true;
       window.location.href = "/";
     }
@@ -1563,7 +1592,9 @@ async function openLibraryModal() {
 
   try {
     await loadCatalog();
-  } catch (e) {}
+  } catch {
+    showAppNotice("Klip kitaplığı yüklenemedi. Lütfen tekrar dene.");
+  }
 
   renderLibraryGrid();
   modal.classList.add("open");
@@ -1578,27 +1609,40 @@ function renderLibraryGrid() {
   const grid = $("libraryGrid");
   if (!grid) return;
 
-  if (globalCatalog.length === 0) {
-    grid.innerHTML = `<p style="color:var(--muted);grid-column:1/-1;padding:20px;text-align:center">Henüz kayıtlı klip bulunmuyor.</p>`;
+  const normalizedQuery = libraryQuery.toLowerCase().trim();
+  const filteredCatalog = globalCatalog.filter((item) => {
+    const level = String(item.level || "B1").toUpperCase();
+    const matchesLevel = libraryLevel === "all" || level === libraryLevel;
+    const matchesQuery = !normalizedQuery ||
+      String(item.title || "").toLowerCase().includes(normalizedQuery);
+    return matchesLevel && matchesQuery;
+  });
+
+  if (filteredCatalog.length === 0) {
+    const emptyMessage = globalCatalog.length === 0
+      ? "Henüz kayıtlı klip bulunmuyor."
+      : "Bu filtrelerle eşleşen klip bulunamadı.";
+    grid.innerHTML = `<p style="color:var(--muted);grid-column:1/-1;padding:20px;text-align:center">${emptyMessage}</p>`;
     return;
   }
 
-  grid.innerHTML = globalCatalog
+  grid.innerHTML = filteredCatalog
     .map((item) => {
       const isCurrent = item.id === currentDataFile;
       const thumbUrl = `https://img.youtube.com/vi/${item.youtubeId}/mqdefault.jpg`;
       const dur = stamp(item.durationSeconds || 0);
-      const level = item.level || "B1";
+      const rawLevel = String(item.level || "B1").toUpperCase();
+      const level = ["A1", "A2", "B1", "B2", "C1"].includes(rawLevel) ? rawLevel : "B1";
 
       return `
-        <button class="clip-card-item${isCurrent ? " is-current" : ""}" data-id="${item.id}">
+        <button class="clip-card-item${isCurrent ? " is-current" : ""}" data-id="${escapeHtml(item.id)}">
           <div class="clip-thumb-wrap">
-            <img class="clip-thumb-img" src="${thumbUrl}" alt="${item.title}" loading="lazy" />
-            <span class="clip-level-badge level-${level.toLowerCase()}">${level}</span>
+            <img class="clip-thumb-img" src="${escapeHtml(thumbUrl)}" alt="${escapeHtml(item.title)}" loading="lazy" />
+            <span class="clip-level-badge level-${level.toLowerCase()}">${escapeHtml(level)}</span>
             <span class="clip-duration-badge">${dur}</span>
           </div>
           <div class="clip-card-body">
-            <h4 class="clip-card-title">${item.title} <span class="clip-card-level-tag">· ${level}</span></h4>
+            <h4 class="clip-card-title">${escapeHtml(item.title)} <span class="clip-card-level-tag">· ${escapeHtml(level)}</span></h4>
             <div class="clip-card-meta">
               <span>${item.groupCount || "?"} Parça</span>
               <span>${item.sentenceCount || "?"} Cümle</span>
@@ -1633,7 +1677,6 @@ async function switchClip(dataFile) {
   url.searchParams.set("data", dataFile);
   window.history.pushState({}, "", url);
 
-  current = 0;
   currentStreak = 0;
   firstTrySuccessCount = 0;
   updateStreakUI();
@@ -1646,8 +1689,31 @@ async function loadClip(dataFile) {
   currentDataFile = dataFile;
   localStorage.setItem("subscript_last_clip", dataFile);
   const data = await apiRequest(`/api/clips/${encodeURIComponent(dataFile)}`);
+  const progressData = authToken
+    ? await apiRequest(`/api/progress/${encodeURIComponent(dataFile)}`)
+    : { progress: [] };
 
   groups = data.groups;
+  completedGroups = new Set(
+    progressData.progress
+      .filter((entry) => entry.completed)
+      .map((entry) => Number(entry.group_index))
+      .filter((index) => Number.isInteger(index) && index >= 0 && index < groups.length)
+  );
+  const firstIncomplete = groups.findIndex((_, index) => !completedGroups.has(index));
+  furthestGroup = Math.min(
+    groups.length - 1,
+    Math.max(0, ...completedGroups, firstIncomplete === -1 ? groups.length - 1 : firstIncomplete)
+  );
+  const savedGroup = Number(localStorage.getItem(`subscript_last_group_${dataFile}`));
+  const hasSavedGroup = Number.isInteger(savedGroup) &&
+    savedGroup >= 0 &&
+    savedGroup <= furthestGroup;
+  current = hasSavedGroup
+    ? savedGroup
+    : firstIncomplete === -1
+      ? groups.length - 1
+      : firstIncomplete;
   $("clipTitle").textContent = data.title;
   if ($("heroClipTitle")) $("heroClipTitle").textContent = data.title;
   if ($("learnHero")) $("learnHero").style.setProperty("--hero-image", `url("https://img.youtube.com/vi/${data.youtubeId}/maxresdefault.jpg")`);
@@ -1707,6 +1773,18 @@ async function init() {
   if ($("libraryModal")) {
     $("libraryModal").addEventListener("click", (e) => {
       if (e.target === $("libraryModal")) closeLibraryModal();
+    });
+  }
+  if ($("librarySearch")) {
+    $("librarySearch").addEventListener("input", (event) => {
+      libraryQuery = event.target.value;
+      renderLibraryGrid();
+    });
+  }
+  if ($("libraryLevelFilter")) {
+    $("libraryLevelFilter").addEventListener("change", (event) => {
+      libraryLevel = event.target.value;
+      renderLibraryGrid();
     });
   }
   if ($("heroStartButton")) {
@@ -1870,12 +1948,12 @@ async function renderCinematicCatalog(userLevel) {
     el.setAttribute("tabindex", "0");
     el.innerHTML = `
       <div class="cinematic-clip-thumb">
-        <img src="https://img.youtube.com/vi/${clip.youtubeId}/mqdefault.jpg" alt="${clip.title}" loading="lazy" />
+        <img src="https://img.youtube.com/vi/${escapeHtml(clip.youtubeId)}/mqdefault.jpg" alt="${escapeHtml(clip.title)}" loading="lazy" />
         <span class="cinematic-clip-badge ${badgeClass}">${badgeText}</span>
       </div>
       <div class="cinematic-clip-meta">
-        <strong>${clip.title}</strong>
-        <small>${clip.level || "B1"} · ${clip.sentenceCount || clip.groupCount || "10+"} parça</small>
+        <strong>${escapeHtml(clip.title)}</strong>
+        <small>${escapeHtml(clip.level || "B1")} · ${escapeHtml(clip.sentenceCount || clip.groupCount || "10+")} parça</small>
         <div class="cinematic-clip-btn">
           <span>Bu kliple başla</span>
           <span>↗</span>

@@ -156,3 +156,8 @@ subscript/
 ## Üretim notu
 
 Bu proje yerel tek sunuculu MVP olarak yapılandırılmıştır. Üretime geçmeden önce PostgreSQL, gizli ortam değişkenleri, rate limiting, e-posta doğrulama ve şifre sıfırlama akışları eklenmelidir.
+
+## Yapılacaklar
+
+- [ ] Üretime çıkış öncesi SQLite'tan PostgreSQL'e geçiş: migration dosyaları, mevcut verinin aktarımı, `pg` connection pool ve PostgreSQL üzerinde testler.
+- [ ] Canlı ortamda yönetilen PostgreSQL, yedekleme ve izleme yapılandırması.

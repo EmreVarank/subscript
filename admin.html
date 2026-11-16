@@ -4,14 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>subscript — Yönetim Paneli</title>
-  <script>
-    (function() {
-      var token = localStorage.getItem("subscript_token") || sessionStorage.getItem("subscript_token");
-      if (!token) {
-        window.location.replace("/");
-      }
-    })();
-  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sofia+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -36,7 +28,8 @@
     .admin-nav a:hover { color: #fff; background: #172033; border-color: #334155; }
     .admin-nav a.active { color: #c4b5fd; background: rgba(99,102,241,.16); border-color: rgba(129,140,248,.35); }
     .admin-nav-icon { width: 1.25rem; text-align: center; font-size: 1rem; }
-    .admin-content { min-width: 0; flex: 1; }
+    .admin-content { min-width: 0; flex: 1; animation: settingsPageIn .22s ease-out; }
+    @keyframes settingsPageIn { from { opacity: .35; transform: translateY(6px); } to { opacity: 1; transform: none; } }
     @media (max-width: 760px) {
       body { padding: 1rem !important; }
       .admin-shell { display: block; }
@@ -308,14 +301,20 @@
   </div>
 
   <script>
-    const token = localStorage.getItem("subscript_token") || sessionStorage.getItem("subscript_token") || "";
+    const adminEscapeHtml = (value) => String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
 
     async function apiRequest(path, options = {}) {
       const res = await fetch(path, {
         ...options,
+          credentials: "same-origin",
         headers: {
           "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            "Origin": window.location.origin,
           ...(options.headers || {})
         }
       });
@@ -345,17 +344,17 @@
           clipsBody.innerHTML = data.clips.map(c => `
             <tr class="hover:bg-slate-800/40 transition cursor-pointer" onclick="openSentenceEditor('${c.id}')">
               <td class="p-4 font-semibold text-white flex items-center gap-3">
-                <img src="https://img.youtube.com/vi/${c.youtubeId}/default.jpg" class="w-12 h-8 object-cover rounded-lg border border-slate-700" alt="">
+                <img src="https://img.youtube.com/vi/${adminEscapeHtml(c.youtubeId)}/default.jpg" class="w-12 h-8 object-cover rounded-lg border border-slate-700" alt="">
                 <div>
                   <div class="hover:text-indigo-400 transition flex items-center gap-2">
-                    <span>${c.title}</span>
+                    <span>${adminEscapeHtml(c.title)}</span>
                     <span class="text-[10px] text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded border border-indigo-500/20">Tıkla & Düzenle</span>
                   </div>
-                  <div class="text-xs text-slate-500 font-mono">${c.id}</div>
+                  <div class="text-xs text-slate-500 font-mono">${adminEscapeHtml(c.id)}</div>
                 </div>
               </td>
               <td class="p-4">
-                <span class="px-2 py-0.5 rounded text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">${c.level || "B1"}</span>
+                <span class="px-2 py-0.5 rounded text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">${adminEscapeHtml(c.level || "B1")}</span>
               </td>
               <td class="p-4 text-slate-400 font-mono text-xs">${Math.round(c.durationSeconds || 0)}s</td>
               <td class="p-4 text-right space-x-2" onclick="event.stopPropagation()">
@@ -377,9 +376,9 @@
         } else {
           usersBody.innerHTML = data.recentUsers.map(u => `
             <tr class="hover:bg-slate-800/40 transition">
-              <td class="p-4 font-semibold text-white">${u.name}</td>
-              <td class="p-4 font-mono text-xs text-slate-300">${u.email}</td>
-              <td class="p-4"><span class="px-2 py-0.5 rounded text-xs font-bold bg-slate-800 text-slate-300">${u.level || "—"}</span></td>
+              <td class="p-4 font-semibold text-white">${adminEscapeHtml(u.name)}</td>
+              <td class="p-4 font-mono text-xs text-slate-300">${adminEscapeHtml(u.email)}</td>
+              <td class="p-4"><span class="px-2 py-0.5 rounded text-xs font-bold bg-slate-800 text-slate-300">${adminEscapeHtml(u.level || "—")}</span></td>
               <td class="p-4"><span class="px-2 py-0.5 rounded text-xs font-bold ${u.plan === 'pro' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-slate-800 text-slate-400'}">${(u.plan || 'free').toUpperCase()}</span></td>
               <td class="p-4">${u.email_verified ? '<span class="text-emerald-400 font-bold">✓ Evet</span>' : '<span class="text-slate-500">✕ Hayır</span>'}</td>
               <td class="p-4 text-xs text-slate-400">${new Date(u.created_at).toLocaleDateString('tr-TR')}</td>
@@ -561,7 +560,7 @@
           try {
             const job = await apiRequest(`/api/admin/jobs/${res.jobId}`);
             if (job.logs && job.logs.length) {
-              logsEl.innerHTML = job.logs.map(l => `<div>› ${l}</div>`).join("");
+              logsEl.innerHTML = job.logs.map(l => `<div>› ${adminEscapeHtml(l)}</div>`).join("");
               logsEl.scrollTop = logsEl.scrollHeight;
             }
 
@@ -576,7 +575,7 @@
               clearInterval(interval);
               statusEl.className = "font-bold text-rose-400";
               statusEl.textContent = "✕ İşlem Başarısız";
-              logsEl.innerHTML += `<div class="text-rose-400 font-bold mt-2">Hata: ${job.error || "Bilinmeyen hata"}</div>`;
+              logsEl.innerHTML += `<div class="text-rose-400 font-bold mt-2">Hata: ${adminEscapeHtml(job.error || "Bilinmeyen hata")}</div>`;
               btn.disabled = false;
               btn.innerHTML = "Yapay Zekayı Başlat 🚀";
             }
